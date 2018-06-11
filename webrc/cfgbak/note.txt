@@ -1,0 +1,4 @@
+/jrdres/webroot/cfgbak/
+
+set the configure file  : backup.bin
+

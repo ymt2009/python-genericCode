@@ -1,0 +1,130 @@
+<script>
+currentMenu = 2;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+var dmzInfo = SDK.Firewall.GetDMZSettings();
+var dmzStatus = dmzInfo.dmz_status;
+var dmzIpAddr = dmzInfo.dmz_ip;
+var routerSetting = SDK.LAN.GetLanSettings();
+var gatewayIP = routerSetting.IPv4IPAddress;
+var submetIP = routerSetting.SubnetMask;
+
+$(document).ready(function() {
+    initScroll($("article#settings"));
+
+    var url = document.location.href.replace(/.*#/, "");
+    var currCM = $("a[href$='" + url + "']");
+    currCM.addClass("currentSecurityMenu");
+    initPage();
+    $("input[name='rdoDmzStatus']").change(function() {
+        loadStatusValue($(this).val());
+    })
+    $(".item-settings #btnApply, .item-settings #btnCancel").setBtnDisabled();
+    $("#rdoDmzEnable, #rdoDmzDisable, #iptDmzIpAddr").bind("input change keyup keydown paste", function() {
+        $(".item-settings #btnApply, .item-settings #btnCancel").removeBtnDisabled();
+    });
+    $(".item-settings #btnApply").click(dmzSettingEvent);
+    $(".item-settings #btnCancel").click(function() {
+        page.reloadMain();
+    })
+})
+
+function initPage() {
+    if (dmzStatus == 0) {
+        $("#rdoDmzEnable").attr("checked", false);
+        $("#rdoDmzDisable").attr("checked", true);
+        $("#iptDmzIpAddr").attr("disabled", true);
+    } else {
+        $("#rdoDmzEnable").attr("checked", true);
+        $("#rdoDmzDisable").attr("checked", false);
+    }
+    $("#iptDmzIpAddr").val(dmzIpAddr);
+}
+
+function dmzSettingEvent() {
+    var $dmzIpAddr = $("#iptDmzIpAddr");
+    var dmzIpAddrValue = $.trim($dmzIpAddr.val());
+    var szLanIpAddrApply = $.trim(gatewayIP);
+    var szLanSubnetMaskApply = $.trim(submetIP);
+    var dmzStatusValue = parseInt($("input[name='rdoDmzStatus']:checked").val());
+    if (dmzStatusValue == 1) {
+        if (dmzIpAddrValue == "") {
+            $dmzIpAddr.showRule("ids_router_ipAddrEmpty");
+            return false;
+        }
+        if (!isValidIpAddress(dmzIpAddrValue)) {
+            $dmzIpAddr.showRule("ids_security_dmzIpInvalid");
+            return false;
+        }
+        if (!IsSameSubnetAddrs(dmzIpAddrValue, szLanIpAddrApply, szLanSubnetMaskApply)) {
+            $dmzIpAddr.showRule("ids_security_dmzInvalidLanSubnet");
+            return false;
+        }
+        if (!isSameSubnetAvailableIp(dmzIpAddrValue, szLanIpAddrApply)) {
+            $dmzIpAddr.showRule("ids_router_ipRule");
+            return false;
+        }
+    }
+    var params = {
+        "dmz_status": dmzStatusValue,
+        "dmz_ip": dmzIpAddrValue
+    }
+    var result = SDK.Firewall.SetDMZSettings(params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function loadStatusValue(value) {
+    if (value == 1) {
+        $("#iptDmzIpAddr").attr("disabled", false);
+    } else {
+        $("#iptDmzIpAddr").attr("disabled", true);
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>
+<div id="dmzSettingPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_dmzTitle}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div class="security settings-con">
+                <p class="des">${ids_security_dmzTips}</p>
+                </br>
+                <ul class="dmzForm  ipt-wrap">
+                    <li>
+                        <label class="text">${ids_security_dmzStatus:}</label>
+                        <label class="vertical">
+                            <input id="rdoDmzEnable" type="radio" name="rdoDmzStatus" value="1" />${ids_enable}</label>
+                        <label class="vertical">
+                            <input id="rdoDmzDisable" type="radio" name="rdoDmzStatus" value="0" />${ids_disable}</label>
+                    </li>
+                    <li>
+                        <label class="text">${ids_security_dmzIpAddr:}</label>
+                        <input id="iptDmzIpAddr" type="text" class="iptText" />
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-wrap">
+                <input type="button" class="btnNormal" id="btnApply" value="${ids_btn_apply}" />
+                <input type="button" class="btnNormal" id="btnCancel" value="${ids_btn_cancel}" />
+            </div>
+        </div>
+    </div>
+</div>

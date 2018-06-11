@@ -1,0 +1,210 @@
+<script>
+currentMenu = 7;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "phoneBookPage";
+var PB_Sim_Num = "sim";
+var PB_INIT_STATE_NO = 0;
+var PB_INIT_STATE_YES = 1;
+
+var phoneNameLen = null;
+var phoneNameInputLen;
+
+$(function() {
+    $("#btnSavePhone,#btnPhoneBookCancel").setBtnDisabled();
+    $("select,input").bind("change keydown keyup input paste", function() {
+        $("#btnSavePhone,#btnPhoneBookCancel").removeBtnDisabled()
+    });
+    $(".simCard").attr("disabled", "disabled");
+    showSmsCardState(simCardState, pinState, simlockState, function() {
+        showPageByAction();
+        $(".simCard").removeAttr("disabled");
+    });
+
+
+})
+
+function showPageByAction() {
+    var pbInitState = SDK.PhoneBook.getPhoneBookInitState();
+    if (pbInitState == PB_INIT_STATE_NO) {
+        sys.prompt('<div id="showResultDiv">' + sys.getRes("ids_dlg_waiting") + '</div>', -1);
+        setTimeout(function() {
+            showPageByAction();
+        }, 2000)
+
+    } else {
+        popUp.hide();
+        showAdd();
+    }
+}
+
+function showAdd() {
+	var $selLocation = $("#selLocation");
+    var selLocationVal = $selLocation.val();
+
+    $("#phoneBookAddBox").show(0);
+    var simPhoneBookInfo = SDK.PhoneBook.getPhoneBookInfo(selLocationVal);
+    phoneNameLen = simPhoneBookInfo.name_length;
+
+    $("#iptPhoneNumber").attr("maxLength", simPhoneBookInfo.number_length);
+    showNameMaxLen($("#iptName").val(), phoneNameLen);
+    $("#btnSavePhone,#btnPhoneBookCancel").setBtnDisabled();
+    $("#iptName,#iptPhoneNumber").bind("input change keyup keydown paste", function() {
+        $("#btnSavePhone,#btnPhoneBookCancel").removeBtnDisabled();
+    });
+    $("#iptName").bind("input change keyup keydown paste", function() {
+        showNameMaxLen($(this).val(), phoneNameLen);
+    });
+
+    $("#btnSavePhone").click(function() {
+        savePhoneBookEvent("add");
+    });
+    $("#selLocation").change(function() {
+	
+	 simPhoneBookInfo = SDK.PhoneBook.getPhoneBookInfo($(this).val());
+        phoneNameLen = simPhoneBookInfo.name_length;
+        phoneNumberLen = simPhoneBookInfo.number_length;
+        $("#iptName").val("").focus();
+        $("#iptPhoneNumber").val("").attr("maxLength", phoneNumberLen);
+        $("#iptName").val("").attr("maxLength", phoneNameLen);
+        $("#spnNameLen").html(phoneNameLen);
+    })
+
+    $("#btnPhoneBookCancel").unbind("click").click(function() {
+        page.reloadMain();
+    });
+}
+
+function showNameMaxLen(input, initMaxLen) {
+    var dom = $("#spnNameLen");
+    var len = initMaxLen;
+    if (input != "") {
+        len = isTwoBytes(input) ? parseInt(initMaxLen / 2) - 1 : initMaxLen;
+    }
+    $("#iptName").attr("maxLength", len);
+    phoneNameInputLen = len;
+    dom.html(len);
+}
+
+function isTwoBytes(input) {
+    var flag = false;
+    if (input == null || input == "") {
+        return flag;
+    }
+
+    for (var i = 0; i < input.length; i++) {
+        var c = input.charCodeAt(i).toString(16);
+        if (c.length >= 3) {
+            flag = true;
+            break;
+        }
+        var tmpchr = input.charAt(i);
+        if ((tmpchr == "^") || (tmpchr == "{") || (tmpchr == "|") ||
+            (tmpchr == "}") || (tmpchr == "[") || (tmpchr == "]") ||
+            (tmpchr == "~") || (tmpchr == "`")) {
+            flag = true;
+            break;
+        }
+    }
+    return flag;
+}
+
+function savePhoneBookEvent(typeStr) {
+    var $selLocation = $("#selLocation");
+    var $iptName = $("#iptName");
+    var $iptPhoneNumber = $("#iptPhoneNumber");
+
+    var selLocationVal = $selLocation.val();
+    var iptNameVal = $iptName.val();
+    var iptPhoneNumberVal = $iptPhoneNumber.val();
+
+    if (iptNameVal == "") {
+        $iptName.showRule("ids_dlg_pb_nameNullWarning");
+        return false;
+    }
+
+    if (iptNameVal != "" && iptNameVal.length > phoneNameInputLen) {
+        $iptName.showRule("ids_dlg_pb_lenWarning");
+        return false;
+    }
+
+    if (iptNameVal != "" && checkName(iptNameVal)) {
+        $iptName.showRule("ids_dlg_pb_nameRule");
+        return false;
+    }
+
+    if (iptPhoneNumberVal == "") {
+        $iptPhoneNumber.showRule("ids_dlg_pb_NumberNullWarning");
+        return false;
+    }
+
+    if (iptPhoneNumberVal != "" && !isSmsNumber(iptPhoneNumberVal)) {
+        $iptPhoneNumber.showRule("ids_dlg_pb_mobileNumRule");
+        return false;
+    }
+
+    function isSmsNumber(str) {
+        return /^[+]?[0-9]+$/.test(str);
+    }
+
+    function checkName(name) {
+        return (/['\\]/g.test(name))
+    }
+
+    var params = {
+        "pb_type": selLocationVal,
+        "pb_name": iptNameVal,
+        "phone_number": iptPhoneNumberVal
+    }
+    var result = SDK.PhoneBook.addPhoneBook(params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.reloadMain();
+        })
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+
+
+}
+</script>
+<style type="text/css">
+</style>
+<div id="phoneBookAdd" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_pb_phoneBook}</h2>
+    </div>
+    <div class="item-content">
+        <h3><a href="#phonebook/phoneBookSetting.html" class="changeLink">${ids_pb_add}</a>
+        </h3>
+        <div class="settings-con connectShow">
+            <ul class="ipt-wrap">
+                <li>
+                    <label class="text">${ids_pb_location}:</label>
+                    <select id="selLocation">
+                        <option value="local">${ids_pb_local}</option>
+                        <option value="sim" class="simCard">${ids_sms_saveSimCard}</option>
+                    </select>
+                </li>
+                <li>
+                    <label class="text">
+                        <span>*</span>${ids_pb_name}:</label>
+                    <input type="text" class="ipt" id="iptName" />
+                </li>
+                <li>
+                    <label class="text">
+                        <span>*</span>${ids_pb_phoneNumber}:</label>
+                    <input type="text" class="ipt" id="iptPhoneNumber" maxlength="40" />
+                </li>
+            </ul>
+            <div class="btn-wrap">
+                <input type="button" id="btnSavePhone" class="btnNormal" value="${ids_btn_apply}" />
+                <input type="button" id="btnPhoneBookCancel" class="btnNormal" value="${ids_btn_cancel}" />
+            </div>
+        </div>
+        <div class="statusContent" id="simCardStatus"></div>
+    </div>
+</div>

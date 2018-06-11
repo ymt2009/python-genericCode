@@ -1,0 +1,77 @@
+<div id="upnpPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_upnp}</a>
+        </h3>
+        <div class="settings-con">            
+            <ul class="ipt-wrap">
+                <li>
+                    <label class="text">${ids_security_upnpStatus:}</label>
+                    <label class="vertical">
+                        <input id="rdoUpnpEnable" type="radio" name="rdoUpnpStatus" value="1" />${ids_enable}</label>
+                    <label class="vertical">
+                        <input id="rdoUpnpDisable" type="radio" name="rdoUpnpStatus" value="0" />${ids_disable}</label>
+                </li>                
+            </ul>
+            <div class="btn-wrap">
+                <button class="btnNormal" id="btnApply">${ids_btn_apply}</button>
+                <button class="btnNormal" id="btnCancel">${ids_btn_cancel}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 2;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+var upnpInfo = SDK.System.GetUpnpSettings();
+var upnpStatus = upnpInfo.upnp_switch;
+$(document).ready(function() {
+    initScroll($("article#settings"));
+    initPage();   
+    $(".item-settings #btnApply, .item-settings #btnCancel").setBtnDisabled();
+    $("#rdoUpnpEnable, #rdoUpnpDisable").bind("input change keyup keydown paste", function() {
+        $(".item-settings #btnApply, .item-settings #btnCancel").removeBtnDisabled();
+    });
+    $(".item-settings #btnApply").click(upnpSettingEvent);
+    $(".item-settings #btnCancel").click(function() {
+        page.reloadMain();
+    })
+})
+
+function initPage() {
+    if (upnpStatus == 0) {
+        $("#rdoUpnpEnable").attr("checked", false);
+        $("#rdoUpnpDisable").attr("checked", true);
+    } else {
+        $("#rdoUpnpEnable").attr("checked", true);
+        $("#rdoUpnpDisable").attr("checked", false);
+    }    
+}
+
+function upnpSettingEvent() {
+    var upnpStatusValue = parseInt($("input[name='rdoUpnpStatus']:checked").val());   
+    var params = {
+        "upnp_switch": upnpStatusValue
+    }
+    var result = SDK.System.SetUpnpSettings(params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>

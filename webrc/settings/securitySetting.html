@@ -1,0 +1,32 @@
+<div id="securityPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/settings.html" class="changeLink">${ids_security}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div class="settings-con">
+                <ul id="securityItemList">                    
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 2;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "securityMenu";
+$(document).ready(function() {
+    initScroll($("article#settings"));
+    var securityItemList = "";
+    $.each(config.SecurityItemList, function(i, v) {
+        if (v.isActive) {
+            securityItemList += '<li><h4>' + sys.getRes(v.titleName) + '</h4><p class="des">' + sys.getRes(v.description) + '</p><p class="mac-link"><a href="' + v.hrefAddress + '" class="' + v.className + '">' + sys.getRes(v.titleName) + '</a></p></li>';
+        }
+    });
+    $("#securityItemList").html(securityItemList);
+});
+</script>

@@ -1,0 +1,187 @@
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "dnsSetting";
+var dnsSettings = SDK.System.getDNSInfo();
+var dnsServer = dnsSettings.DNSMode
+var preDNS = dnsSettings.DNSAddress1;
+var secondDNS = dnsSettings.DNSAddress2;
+
+/* -------------------------------------------------------------------------
+     class - dnsSetting
+     ----------------------------------------------------------------------------- */
+$(document).ready(function() {
+    initScroll($("article#more"));
+    formload();
+    $(".btn-wrap input[type='button']").setBtnDisabled();
+    $("#btnCancel").click(page.reloadMain);
+    $("#btnApply").click(function() {
+        $(".iptText").removeClass("errorIpt");
+        $(".rule").remove();
+        submitPage();
+    });
+    /*$("#btnSaveDns").click(setDnsEvent);
+    $("#btnCancelDNS").click(page.reloadMain);*/
+
+    $("input[name='dns_server']").change(function() {
+        setDNSValue($(this).val());
+        $(".iptText").removeClass("errorIpt");
+        $(".rule").remove();
+    });
+
+    $(".item-content select,.item-content input").bind("change input keyup keydown paste", function() {
+        $(".btn-wrap input[type='button']").removeBtnDisabled()
+            //$("#btnApply,#btnCancel").removeBtnDisabled();
+    });
+    //$("#iptPreferredDsnServer,#iptAlternateDnsServer").bind("change keydown keyup input paste", function() {
+    //$("#btnSaveDns,#btnCancelDNS").removeBtnDisabled()
+    //});
+});
+
+function formload() {
+    $("#dns_server").val(dnsServer);
+    $("#pre_dns").val(preDNS);
+    $("#sec_dns").val(secondDNS);
+    setDNSValue(dnsServer);
+}
+
+function setDNSValue(dnsServer) {
+    if (dnsServer == 1) {
+        $("#dnsserver_1").attr("checked", true);
+        $("#pre_dns,#sec_dns").attr("disabled", false);
+    } else if (dnsServer == 0) {
+        $("#dnsserver_2").attr("checked", true);
+        $("#pre_dns,#sec_dns").attr("disabled", true);
+    }
+}
+
+function isValidSecDNSAddress(address) {
+    var secDNSAdd = $("#sec_dns").val();
+    var preDNSAdd = $("#pre_dns").val();
+
+    var addrParts = address.split('.');
+    if (secDNSAdd == "") {
+        return true;
+    } else {
+        if (secDNSAdd == preDNSAdd) {
+            return false;
+        }
+        if (addrParts.length != 4) {
+            return false;
+        }
+        for (i = 0; i < 4; i++) {
+            if (isNaN(addrParts[i]) == true) {
+                return false;
+            }
+            if (addrParts[i] == '') {
+                return false;
+            }
+            if (addrParts[i].indexOf(' ') != -1) {
+                return false;
+            }
+            if ((addrParts[i].indexOf('0') == 0) && (addrParts[i].length != 1)) {
+                return false;
+            }
+        }
+        if ((addrParts[0] <= 0 || addrParts[0] == 127 || addrParts[0] > 223) || (addrParts[1] < 0 || addrParts[1] > 255) || (addrParts[2] < 0 || addrParts[2] > 255) || (addrParts[3] <= 0 || addrParts[3] >= 255)) {
+            return false;
+        }
+    }
+
+    return true;
+
+}
+
+function submitPage() {
+    var dns_status;
+    // var host_name=$("#host_name");
+    var pre_dns = $("#pre_dns");
+    var sec_dns = $("#sec_dns");
+
+    //var lan_host_name= $.trim(host_name.val());
+    var szPreDNSAddrApply = $.trim(pre_dns.val());
+    var szSecDNSAddrApply = $.trim(sec_dns.val());
+
+    if ($("input[name='dns_server']:checked").val() == "1") {
+        if (szPreDNSAddrApply == "") {
+            pre_dns.showRule("ids_router_ipAddrEmpty");
+            return false;
+        }
+        if (!isValidIpAddress(szPreDNSAddrApply)) {
+            pre_dns.showRule("ids_router_ipAddrInvalid")
+            return false;
+        }
+        /*if (szSecDNSAddrApply == "") {
+            sec_dns.showRule("ids_router_ipAddrEmpty");
+            return false;
+        }*/
+        if (!isValidSecDNSAddress(szSecDNSAddrApply)) {
+            sec_dns.showRule("ids_router_ipAddrInvalid")
+            return false;
+        }
+        dns_status = 1;
+        //$("#pre_dns,#sec_dns").attr("disabled", false);
+
+    } else {
+        dns_status = 0;
+        //$("#pre_dns,#sec_dns").attr("disabled", true);
+    }
+    sys.confirm("ids_router_restartWarn", function() {
+        var DNSServerStatus = dns_status;
+        var preDNSAddr = szPreDNSAddrApply;
+        var secDNSAddr = szSecDNSAddrApply;
+
+        $("#btnApply,#btnCancel").setBtnDisabled();
+        var result = SDK.System.setDNSInfo(DNSServerStatus, preDNSAddr, secDNSAddr);
+        if (result == API_RESULT_SUCCESS) {
+            sys.alert("ids_success", function() {
+                page.reloadMain();
+            });
+        } else {
+            sys.alert("ids_fail")
+        }
+
+    })
+}
+</script>
+<div id="dnsSettingPage" class="jsTemplate">
+    <div class="item-update">
+        <div class="item-hd clearfix">
+            <h2>${ids_menu_more}</h2>
+        </div>
+        <div class="item-content">
+            <h3><a href="#more/more.html" class="changeLink">${ids_title_dnsSetting}</a>
+            </h3>
+            <div class="scroll-pane jspScrollable">
+                <div class="dnsSetting-con">
+                    <ul class="ipt-dns">
+                        <li>
+                            <label class="text">${ids_dns_manual_mode:}</label>
+                            <label class="vertical">
+                                <input name="dns_server" id="dnsserver_1" type="radio" value="1"> ${ids_enable}&nbsp;&nbsp;</label>
+                            <label class="vertical">
+                                <input name="dns_server" id="dnsserver_2" type="radio" value="0"> ${ids_disable}</label>
+                        </li>
+                        <li>
+                            <label class="text">${ids_title_preferredDnsServer:}</label>
+                            <input id="pre_dns" type="text" class="iptText" maxlength="15" />
+                        </li>
+                        <li>
+                            <label class="text">${ids_title_alternateDnsServer:}</label>
+                            <input id="sec_dns" type="text" class="iptText" maxlength="15" />
+                        </li>
+                    </ul>
+                    <div class="btn-wrap">
+                        <!-- <button class="btnNormal" id="btnApply">${ids_btn_apply}</button>
+                    <button class="btnNormal" id="btnCancel">${ids_btn_cancel}</button>
+                     -->
+                        <input type="button" id="btnApply" class="btnNormal" value="${ids_btn_apply}" />
+                        <input type="button" id="btnCancel" class="btnNormal" value="${ids_btn_cancel}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

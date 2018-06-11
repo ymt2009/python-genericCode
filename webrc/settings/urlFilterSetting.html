@@ -1,0 +1,290 @@
+<div id="urlFilterPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_urlFilterTitle}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div class="settings-con">
+                <ul class="ipt-wrap">
+                    <li>
+                        <label class="text">${ids_security_urlFilterTitle:}</label>
+                        <select name="filterflag" id="filterflag" class="select">
+                            <option value="0">${ids_disable}</option>
+                            <!--<option value="1">${ids_allow}</option>-->
+                            <option value="2">${ids_deny}</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label class="text">${ids_filter_urlAddress:}</label>
+                        <input id="urlAddress" type="text" maxlength="31">
+                    </li>
+                </ul>
+                <table class="urlFilterTableTh" id="urlFilterTableTh" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="firstTh">${ids_filter_urlAddress}</th>
+                            <th class="sencondTh">${ids_security_ipOption}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="urlFilterTable">
+                    </tbody>
+                </table>
+                <div id="urlListBox" style="display:none">
+                    <div class="container">
+                        <p class="error" id="warning"></p>
+                    </div>
+                </div>
+                <div class="btn-wrap">
+                    <input type="button" id="btnAdd" class="btnNormal" value="${ids_btn_add}" />
+                    <input type="button" id="btnApply" class="btnNormal" value="${ids_btn_apply}" />
+                    <input type="button" id="btnCancel" class="btnNormal" value="${ids_btn_cancel}" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "urlFilterSetting";
+
+var initUrlFilterSettings = null;
+
+var MAX_UrlNumber = config.MaxURLfilterNum;
+var initUrlFilterSettings = SDK.Firewall.GetUrlFilterSettings();
+var initFilterPolicy = initUrlFilterSettings.filter_policy;
+var initAllowList = initUrlFilterSettings.UrlAllowList;
+var initDenyList = initUrlFilterSettings.UrlDenyList;
+
+
+$(function() {
+    initScroll($("article#settings"));
+    uiInitUrlFilterPage();
+    var clickbtn;
+    $("#btnAdd").click(function() {
+        clickbtn = "add";
+        $("#btnAdd").setBtnDisabled();
+        $("#btnApply,#btnCancel").removeBtnDisabled();
+        $(".ipt-wrap input").attr("disabled", false);
+    });
+    $("#btnApply").on("click", function() {
+        AddUrlAddressEvent(clickbtn);
+    });
+    $("#btnCancel").click(function() {
+        page.reloadMain();
+    });
+    $("#filterflag").change(function() {
+        var $value = parseInt($(this).val());
+        uiShowUrlList($value);
+        if ($value == URL_FILTER_STATE_DISABLE) {
+            disableListBtn();
+            $("#btnApply,#btnCancel").removeBtnDisabled();
+        } else if ($value == URL_FILTER_STATE_ALLOW) {
+            allowListBtn(initAllowList);
+            if (initAllowList.length == MAX_UrlNumber) {
+                $("#btnApply,#btnCancel").removeBtnDisabled();
+            } else if (initAllowList.length == 0) {
+                $("#btnAdd,#btnCancel").removeBtnDisabled();
+                $("#btnApply").setBtnDisabled();
+            } else {
+                $("#btnAdd,#btnApply,#btnCancel").removeBtnDisabled();
+            }
+
+        } else if ($value == URL_FILTER_STATE_DENY) {
+            denyListBtn(initDenyList);
+            if (initDenyList.length == MAX_UrlNumber) {
+                $("#btnApply,#btnCancel").removeBtnDisabled();
+            } else if (initDenyList.length == 0) {
+                $("#btnAdd,#btnCancel").removeBtnDisabled();
+                $("#btnApply").setBtnDisabled();
+            } else {
+                $("#btnAdd,#btnApply,#btnCancel").removeBtnDisabled();
+            }
+        }
+    })
+
+});
+
+function uiInitUrlFilterPage() {
+    $("#btnApply,#btnCancel").setBtnDisabled();
+    $(".ipt-wrap input").attr("disabled", true);
+    $("#filterflag").val(initFilterPolicy);
+
+    uiShowUrlList(initFilterPolicy);
+
+}
+
+function uiShowUrlList(type) {
+    var $urlFilterTableTh = $("#urlFilterTableTh");
+
+    switch (type) {
+        case URL_FILTER_STATE_ALLOW:
+            allowListBtn(initAllowList);
+            showUrlList(initAllowList);
+            //$urlFilterTableTh.fadeIn(200);
+            deleteEvent();
+            break;
+        case URL_FILTER_STATE_DENY:
+            denyListBtn(initDenyList);
+            showUrlList(initDenyList);
+            //$urlFilterTableTh.fadeIn(200);
+            deleteEvent();
+            break;
+        default:
+            disableListBtn();
+            //$urlFilterTableTh.fadeOut(200);
+            deleteEvent();
+            break;
+
+    }
+}
+
+function isValidUrlAddress(address) {
+    /*var regHttp = new RegExp("((^http)|(^https)):\/\/(\\w)+\.(\\w)+");
+    if (!regHttp.test(address)) {
+        return false;
+    }
+    return true;*/
+    var regUrl = /([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/;
+    var regHttp = new RegExp(regUrl);
+    if (regHttp.test(address)) {
+        return true;
+    }
+    return false;
+}
+
+function showUrlList(initUrlList) {
+    var htmlS = "";
+    if ($.isArray(initUrlList)) {
+        $.each(initUrlList, function(i) {
+
+            htmlS += "<tr class='trList' id='trUrlFilter" + i + "'>";
+            htmlS += "<td class='firstTd'>" + initUrlList[i] + "</td>";
+            htmlS += "<td class='ipBorder'><span class='deleteUrlAddress' id='deleteUrlAddress" + i + "'></span></td></tr>";
+        })
+        $("#urlFilterTable").html(htmlS);
+    }
+}
+
+function AddUrlAddressEvent(clickbtn) {
+    var clickbtn = clickbtn;
+    var urlState = parseInt($("#filterflag").val());
+    var $newUrlAddress = $("#urlAddress");
+    var newUrlAddress = $newUrlAddress.val();
+
+    var urlAllowList = initAllowList;
+    var urlDenyList = initDenyList;
+
+    if (urlState == URL_FILTER_STATE_ALLOW) {
+
+        if (clickbtn == "add" && !isValidUrlAddress(newUrlAddress)) {
+            sys.alert("ids_security_urlAddrInvalid");
+            return false;
+        }
+        if (clickbtn == "add" && $.inArray(newUrlAddress, urlAllowList) != -1) {
+            sys.alert("ids_security_urlAddrNameWarn");
+            return false;
+        }
+        urlAllowList.push(newUrlAddress);
+    } else if (urlState == URL_FILTER_STATE_DENY) {
+        if (clickbtn == "add" && !isValidUrlAddress(newUrlAddress)) {
+            sys.alert("ids_security_urlAddrInvalid");
+            return false;
+        }
+        if (clickbtn == "add" && $.inArray(newUrlAddress, urlDenyList) != -1) {
+            sys.alert("ids_security_urlAddrNameWarn");
+            return false;
+        }
+        urlDenyList.push(newUrlAddress);
+    }
+
+    $("#btnApply,#btnCancel").setBtnDisabled();
+    var result = SDK.Firewall.SetUrlFilterSettings(urlState, urlAllowList, urlDenyList);
+    showResult(result);
+}
+
+
+function deleteEvent() {
+    $(".deleteUrlAddress").click(function() {
+        var thisLineId = $(this).attr("id");
+        thisLineNum = thisLineId.slice(16);
+        DeleteUrlAddress(thisLineNum);
+    });
+}
+
+function DeleteUrlAddress(listId) {
+    sys.confirm(sys.getRes("ids_profile_deleteWarn"), function() {
+        var urlState = parseInt($("#filterflag").val());
+        var urlAllowList = initAllowList;
+        var urlDenyList = initDenyList;
+
+        if (urlState == URL_FILTER_STATE_ALLOW) {
+            if ($.inArray(urlAllowList[listId], urlAllowList) != -1) {
+                urlAllowList.splice(listId, 1)
+            }
+        } else if (urlState == URL_FILTER_STATE_DENY) {
+            if ($.inArray(urlDenyList[listId], urlDenyList) != -1) {
+                urlDenyList.splice(listId, 1);
+            }
+        }
+
+        $("#btnApply").setBtnDisabled();
+        var result = SDK.Firewall.SetUrlFilterSettings(urlState, urlAllowList, urlDenyList);
+        showResult(result);
+    });
+}
+
+
+function allowListBtn(list) {
+    $("#urlFilterTableTh").css("display", "");
+    $(".ipt-wrap input").attr("disabled", true);
+    if (list.length == MAX_UrlNumber) {
+        $("#btnAdd,#btnApply,#btnCancel").setBtnDisabled();
+    } else {
+        $("#btnAdd").removeBtnDisabled();
+        $("#btnApply,#btnCancel").setBtnDisabled();
+
+    }
+
+
+}
+
+function denyListBtn(list) {
+    $("#urlFilterTableTh").css("display", "");
+    $(".ipt-wrap input").attr("disabled", true);
+    if (list.length == MAX_UrlNumber) {
+        $("#btnAdd,#btnApply,#btnCancel").setBtnDisabled();
+    } else {
+        $("#btnAdd").removeBtnDisabled();
+        $("#btnApply,#btnCancel").setBtnDisabled();
+    }
+}
+
+function disableListBtn() {
+    $("#urlFilterTableTh").css("display", "none");
+    $(".ipt-wrap input").attr("disabled", true);
+    $("#btnAdd,#btnApply,#btnCancel").setBtnDisabled();
+}
+
+function showResult(result) {
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>

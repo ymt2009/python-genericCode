@@ -1,0 +1,34 @@
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "more";
+var moreLists = "";
+
+var simHPLMN = SDK.Network.GetNetworkInfo().PLMN;
+if (config.SupportUssd && config.isSimCardDTPLSupportUssd) {
+    if (simHPLMN == "26002") {
+        config.MoreItemList.Ussd.isActive = true;
+    } else {
+        config.MoreItemList.Ussd.isActive = false;
+    }
+}
+
+$.each(config.MoreItemList, function(i, v) {
+    if(v.isActive){
+        moreLists += '<li><a href="' + v.hrefAddress + '" class="' + v.className + '">' + sys.getRes(v.titleName) + '</a></li>'; 
+    } 
+});
+$("#moreList").html(moreLists);
+//more menu list end
+</script>
+<div id="morePage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_more}</h2>
+    </div>
+    <div class="item-content">
+        <ul class="more-list" id="moreList">
+        </ul>
+    </div>
+</div>

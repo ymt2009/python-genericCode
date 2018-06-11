@@ -1,0 +1,261 @@
+<div id="conStatusPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_connection}</h2>
+    </div>
+    <div class="item-content">
+        <div class="state connectShow">
+            <a class="switch"></a>
+            <h3 id="spnWanNetworkName"></h3>
+            <p>
+                <span id="spnWanConnectState"></span>
+                <!--<span class="roaming hidden">R</span>-->
+            </p>
+        </div>
+        <div class="statusContent" id="simCardStatus" style="text-align:center;"></div>
+        <p class="warnColor hidden22">${ids_roamAppear}</p>
+        <ul class="dashboard connectShow">
+            <li class="chrono">
+                <span class='icon'>
+                    <span class="hide">${ids_icon_timeElapsed}</span>
+                </span>
+                <p id="spnConnectTime"></p>
+            </li>
+            <li class="debit">
+                <span class='icon'>
+                    <span class="hide">${ids_icon_debit}</span>
+                </span>
+                <p id="spnWanUsage"></p>
+            </li>
+        </ul>
+        <div class="infos">
+            <!-- WHEN YOU ARE CONNECTED CHOOSE BETWEEN CSS CLASS WIFI OR NETWORK : 
+                1 - network (4G or 3G or 3G+ or edge or gprs or H+ ) : css Class "icon network1 to 5" 
+                2 - wifi : css Class "icon wifi1 to 5" 
+            -->
+            <div class="solidline connectShow"></div>
+            <ul id="infos-network" class="connectShow">
+                <li class="icons">
+                    <span class="icon" id="signalImg"></span>
+                    <span class="connection-roaming hidden"></span>
+                </li>
+                <!-- you can add class 'txt small' if long text like 'edge' or 'wifi' -->
+                <li class="txt" id="spnWanNetworkType"></li>
+            </ul>
+            <!-- battery : css Class "icon battery1 to 7" -->
+            <div class="solidline"></div>
+            <ul id="infos-battery">
+                <li class="icons">
+                    <span id="batteryImg" class="icon battery1">${ids_icon_battery}</span>
+                    <div class="bar">
+                        <div class="progress"></div>
+                    </div>
+                </li>
+                <li class='txt'>
+                    <span id="ibatterylvl"></span><sup>%</sup>
+                </li>
+            </ul>
+            <!-- people -->
+            <div class="solidline"></div>
+            <ul id="infos-people">
+                <li class="icons">
+                    <span class="icon people">${ids_icon_people}</span>
+                </li>
+                <li class='txt' id="linkConDevice">
+                    <span id="spnconnectedPerson"></span><span class="row">${ids_wan_connected_num}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 0;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "connectionStatus";
+pageUrl = "connection/connectionStatus.html";
+
+/* -------------------------------------------------------------------------
+     class - airbox connection
+----------------------------------------------------------------------------- */
+$(function(){
+    connectionSwitch()
+    linkConDevice()
+})
+function linkConDevice(){
+    $("#linkConDevice").on("click", function(){
+        page.changePage("connection/connectedDevice.html");
+    })
+}
+function connectionSwitch(){
+    $("article#connection .switch").on("click", function(){
+        if(!$("article#connection .switch").hasClass('loading')){
+                if (!$("article#connection .switch").hasClass('on') ) {
+                    AIRBOX.connection._connect();
+                    _switchConnecting()
+                } else {
+                    AIRBOX.connection._disconnect();
+                    _switchDisconnecting()
+                }
+        }
+    })
+}
+function _switchDisconnecting() {
+        $("article#connection .switch").removeClass().addClass("switch loading");
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_disconnecting"));
+    }
+
+    function _switchConnecting() {
+        $("article#connection .switch").removeClass().addClass("switch loading");
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_connecting"));
+    }
+
+AIRBOX.connection = (function() {
+    var s = {
+            $content: $("article#connection"),
+            $switchs: $("article#connection .switch"),
+            $link: $("#linkConDevice")
+        },
+        cs = {};
+
+    function init(options) {
+        $.extend(s, options);
+        cs = AIRBOX.core.settings;
+        _initSwitch();
+        _initStatus();
+        _initLink();
+        _initPeopleLink();
+    };
+
+    function _initStatus() {
+        showSmsCardState(simCardState, pinState, simlockState);
+        defaultPage.refreshImgStatus();
+    }
+
+    function _initLink() {
+        s.$link.on(cs.clickEvent, function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            page.changePage("connection/connectedDevice.html");
+        });
+    }
+
+    function _initPeopleLink(){
+        if(!config.SupportPeopleNum){
+            $("#infos-people,.wifi-wrap").addClass("hidden");
+            $("#infos-people").prev().addClass("hidden");
+            $("#infos-battery,#infos-network").css("margin","20px 0");
+            $("#userNum").parent().addClass("hidden");
+        }
+        if(!config.SupportPeopleNum && !config.isNeedBattery){
+            $("#infos-network").parent(".infos").css("bottom","78px");
+            $("#infos-network").css("padding","20px 0");
+        }
+    }
+
+    function _initSwitch() {
+        s.$switchs.off(cs.clickEvent).on(cs.clickEvent, function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if(!s.$switchs.hasClass('loading')){
+                if (!s.$switchs.hasClass('on') ) {
+                    _connect();
+                } else {
+                    _disconnect();
+                }
+            }
+            
+        });
+    };
+
+    function _connect() {
+        var iNetworkType = SDK.Network.GetNetworkInfo().NetworkType;
+        if (getNetworkTypeStr(iNetworkType) == "NA") {
+            sys.alert("ids_fail");
+            return false;
+        }
+        var usageSettingsInfo = SDK.Statistics.GetUsageSettings();
+        var monthlyDataPlan = usageSettingsInfo.MonthlyPlan;
+        var UsedData = SDK.Statistics.GetUsageRecord().HUseData;
+        var isAutoUsage = usageSettingsInfo.TimeLimitTimes;
+        var UsedTimes = usageSettingsInfo.UsedTimes;
+        var AutoDisconnFlag = usageSettingsInfo.AutoDisconnFlag;
+        var TimeLimitFlag = usageSettingsInfo.TimeLimitFlag;
+        if (((monthlyDataPlan <= UsedData) && (Number(AutoDisconnFlag) == 1 && monthlyDataPlan !=0)) || ((isAutoUsage <= UsedTimes) && (Number(TimeLimitFlag) == 1))) {
+            sys.alert("ids_wan_tips");
+            return false;
+        }
+        
+        if(config.IsRoamConnectionModeTips){
+            var roamingState = SDK.System.GetSystemStatus().Roaming;
+            var warnTipsFlag= SDK.Connection.GetRoamConnectionWarnTipsFlag().WarnTipsFlag;
+            if(parseInt(roamingState)==0 && warnTipsFlag==1){
+                sys.confirm('ids_wan_roamingPopWarningMessage',function(){
+                    var warningTipsFlag= 0
+                    var resultInfo= SDK.Connection.SetRoamConnectionWarnTipsFlag(warningTipsFlag)
+                    var result = SDK.Connection.Connect();
+                    resultEvent(result)
+                })
+            }else{
+                var result = SDK.Connection.Connect();
+                resultEvent(result)
+            }
+        }else{
+            var result = SDK.Connection.Connect();
+            resultEvent(result)
+        }
+        
+
+        function resultEvent(result){
+            if (result == API_RESULT_SUCCESS) {
+                _switchConnecting();
+                getConnectionDialState();
+            } else {
+                sys.alert("ids_fail", function() {
+                    _switchDisconnected();
+                });
+            }
+        }
+    }
+
+    function _disconnect() {
+        var result = SDK.Connection.DisConnect();
+        if (result == API_RESULT_SUCCESS) {
+            _switchDisconnecting();
+            getConnectionDialState();
+        } else {
+            sys.alert("ids_fail", function() {
+                _switchConnected();
+            });
+        }
+    }
+
+    function _switchDisconnected() {
+        s.$switchs.removeClass().addClass("switch");
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_disconnected"));
+    };
+
+    function _switchDisconnecting() {
+        s.$switchs.removeClass().addClass("switch loading");
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_disconnecting"));
+    }
+
+    function _switchConnecting() {
+        s.$switchs.removeClass().addClass("switch loading");
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_connecting"));
+    }
+
+    function _switchConnected() {
+        s.$switchs.removeClass().addClass('switch on');
+        $("#spnWanConnectState").html(sys.getRes("ids_wan_connected"));
+    };
+
+    return {
+        init: init,
+        _connect:_connect,
+        _disconnect:_disconnect
+    };
+}())
+AIRBOX.connection.init();
+</script>

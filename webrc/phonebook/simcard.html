@@ -1,0 +1,396 @@
+<script>
+currentMenu = 7;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "simCardPage";
+//var pageAction = getUrlPara("action") || "local";
+var PB_INIT_STATE_NO = 0;
+var PB_INIT_STATE_YES = 1;
+var PB_Sim_Num = "sim";
+var G_totalPage;
+var editPhonebookItem;
+var phoneId;
+
+var simStatus = SDK.SIM.GetSimStatus();
+var simState = simStatus.SIMState;
+var pinState = simStatus.PinState;
+
+$(function() {
+    initScroll($("article#phonebook"));
+    $("#btnPhoneBookEdit,#btnPhoneBookDelete").setBtnDisabled();
+    $("select,input").bind("change keydown keyup input paste", function() {
+        $("#btnPhoneBookEdit,#btnPhoneBookDelete").removeBtnDisabled()
+    });
+    showSmsCardState(simCardState, pinState, simlockState, function() {
+        showPageByAction();
+    });
+
+    pagingBindEvent();
+})
+
+
+function showPageByAction() {
+    var pbInitState = SDK.PhoneBook.getPhoneBookInitState();
+    if (pbInitState == PB_INIT_STATE_NO) {
+        sys.prompt('<div id="showResultDiv">' + sys.getRes("ids_dlg_waiting") + '</div>', -1);
+        setTimeout(function() {
+            showPageByAction();
+        }, 2000)
+
+    } else {
+        popUp.hide();
+        initPhoneBookList(PB_Sim_Num);
+    }
+}
+
+function initPhoneBookList(type) {
+    var phoneBookListInfo, phoneBookList;
+    phoneBookListInfo = SDK.PhoneBook.getPhoneBooklistInfo(type).data;
+    showPhoneBookList(type, phoneBookListInfo);
+
+    var phoneBookInfo = SDK.PhoneBook.getPhoneBookInfo(type);
+    var currentNum = phoneBookInfo.current_num;
+    var totleNum = phoneBookInfo.totle_num;
+
+
+
+    if (phoneBookListInfo.length > 0) {
+        $("input[name='phoneBookCheck']").css("display", "");
+    } else {
+        $("input[name='phoneBookCheck']").css("display", "none");
+    }
+
+    $("input[name='phoneBookCheckItem']").bind("change keydown keyup input paste", function() {
+        $("#btnPhoneBookEdit,#btnPhoneBookDelete").removeBtnDisabled()
+    });
+
+    $("#btnPhoneBookDelete").unbind("click").click(function() {
+        deletePhoneBookEvent(type);
+    });
+
+    $("#btnPhoneBookEdit").unbind("click").click(function() {
+        var currentChecked = $("input[name='phoneBookCheckItem']:visible:checked");
+        if (currentChecked.length == 1) {
+            $.each(phoneBookListInfo, function(i, v) {
+                if (v.pb_id == parseInt(currentChecked.attr("data"))) {
+                    editPhonebookItem = v;
+                }
+            })
+            showEdit(type, currentChecked.attr("data"));
+        } else {
+            sys.alert("ids_dlg_pb_tooManyNumbers");
+        }
+    });
+
+    $("#btnPhoneBookBack").click(function() {
+        $("#phoneBookLocalBox").css("display", "");
+        $("#eidtPhonebookInfo").css("display", "none");
+        page.reloadMain();
+    })
+
+}
+
+function pagingBindEvent() {
+    $("#btnPhoneBookDelete,#btnPhoneBookEdit").setBtnDisabled();
+    $("input[name='phoneBookCheck']").click(function() {
+        if ($(this).attr("checked") == "checked") {
+            $("input[name='phoneBookCheckItem']:visible").attr("checked", true);
+        } else {
+            $("input[name='phoneBookCheckItem']:visible").attr("checked", false);
+        }
+    })
+
+    $("input[name='phoneBookCheckItem']:visible").bind("click", function() {
+        checkIsSelectAll();
+    })
+
+    $("input[name='phoneBookCheck']").bind("click", function() {
+        checkIsSelectAll();
+    })
+
+}
+
+//check select all
+function checkIsSelectAll() {
+    var pageAllCheck = $("input[name='phoneBookCheckItem']:visible");
+    var currentChecked = $("input[name='phoneBookCheckItem']:visible:checked");
+    if (currentChecked.length > 0) {
+        $("#btnPhoneBookDelete,#btnPhoneBookEdit").removeBtnDisabled();
+    } else {
+        $("#btnPhoneBookDelete,#btnPhoneBookEdit").setBtnDisabled();
+    }
+    if (pageAllCheck.length == currentChecked.length) {
+        $("input[name='phoneBookCheck']:visible").attr("checked", true);
+    } else {
+        $("input[name='phoneBookCheck']:visible").attr("checked", false);
+    }
+}
+
+function showNameMaxLen(input, initMaxLen) {
+    var dom = $("#spnNameLen");
+    var len = initMaxLen;
+    if (input != "") {
+        len = isTwoBytes(input) ? parseInt(initMaxLen / 2) - 1 : initMaxLen;
+    }
+    $("#iptName").attr("maxLength", len);
+    phoneNameInputLen = len;
+    dom.html(len);
+}
+
+function isTwoBytes(input) {
+    var flag = false;
+    if (input == null || input == "") {
+        return flag;
+    }
+
+    for (var i = 0; i < input.length; i++) {
+        var c = input.charCodeAt(i).toString(16);
+        if (c.length >= 3) {
+            flag = true;
+            break;
+        }
+        var tmpchr = input.charAt(i);
+        if ((tmpchr == "^") || (tmpchr == "{") || (tmpchr == "|") ||
+            (tmpchr == "}") || (tmpchr == "[") || (tmpchr == "]") ||
+            (tmpchr == "~") || (tmpchr == "`")) {
+            flag = true;
+            break;
+        }
+    }
+    return flag;
+}
+
+function showPhoneBookList(type, list) {
+    var listHTmlStr = "";
+    var u = 0;
+    var pageNum = 0;
+    var pageId = "";
+
+    function makeListStr(i, v) {
+        var tpl = '<tr><td class="tdPadding"><input type="checkbox" name="phoneBookCheckItem" data="%2"> %1</td><td>%3</td><td>%4</td></tr>';
+        return formatHtmlStr(tpl, i, v.pb_id, v.pb_name.replace(/\</g, "&lt;"), v.phone_number);
+    }
+    var pageLength = 12;
+    G_totalPage = Math.ceil(list.length / pageLength);
+    list = list.reverse();
+    $.each(list, function(i, v) {
+        if (u % pageLength == 0) {
+            pageNum++;
+            pageId = "phoneBookPage" + pageNum;
+            listHTmlStr += "<tbody class='phoneBookPage' id='" + pageId + "'>";
+        }
+        listHTmlStr += makeListStr(i + 1, v);
+        if (u % pageLength == (pageLength - 1) || u == list.length - 1) {
+            listHTmlStr += "</tbody>"
+        }
+        u++;
+    })
+
+    $("#tableSimPhoneBook").append(listHTmlStr);
+
+}
+
+
+function showEdit(type, id) {
+    $("#eidtPhonebookInfo").css("display", "");
+    saveType = "edit";
+    phoneId = id;
+    var singleData = editPhonebookItem; // = SDK.PhoneBook.getPhoneBookSingle(type, id);
+    var simPhoneBookInfo = SDK.PhoneBook.getPhoneBookInfo(PB_Sim_Num);
+    phoneNameLen = simPhoneBookInfo.name_length;
+
+    var currentPhoneNumber = singleData.phone_number;
+
+    var numberMaxLen;
+    if (type == PB_Sim_Num && currentPhoneNumber.length > simPhoneBookInfo.number_length) {
+        numberMaxLen = 40;
+    } else {
+        numberMaxLen = SDK.PhoneBook.getPhoneBookInfo(type).number_length;
+    }
+
+    $("#iptPhoneNumber").attr("maxLength", numberMaxLen);
+
+    $("#iptName").val(singleData.pb_name);
+    $("#iptPhoneNumber").val(singleData.phone_number);
+    $("#selLocation").val(type).attr("disabled", true);
+
+    showNameMaxLen(singleData.pb_name, phoneNameLen);
+    $("#iptName").bind("input change keyup keydown paste", function() {
+        showNameMaxLen($(this).val(), phoneNameLen);
+    });
+
+    $("#phoneBookSimBox,#phoneBookLocalBox,#phoneBookPaging,#listBtnBox").hide(0)
+    $("#phoneBookAddBox").show(0);
+
+    $("#btnSavePhone,#btnPhoneBookCancel").setBtnDisabled();
+    $("#iptName,#iptPhoneNumber").bind("input change keyup keydown paste", function() {
+        $("#btnSavePhone,#btnPhoneBookCancel").removeBtnDisabled();
+    });
+    $("#btnPhoneBookCancel").unbind("click").click(function() {
+        showEdit(PB_Sim_Num, phoneId);
+    })
+    $("#btnPhoneBookBackBox").css("display", "inline");
+    $("#btnPhoneBookBack").click(function() {
+        page.reloadMain();
+    })
+    $("#btnSavePhone").click(function() {
+        savePhoneBookEvent();
+    })
+}
+
+function savePhoneBookEvent() {
+    var $selLocation = $("#selLocation");
+    var $iptName = $("#iptName");
+    var $iptPhoneNumber = $("#iptPhoneNumber");
+
+    var selLocationVal = $selLocation.val();
+    var iptNameVal = $iptName.val();
+    var iptPhoneNumberVal = $iptPhoneNumber.val();
+
+    if (iptNameVal == "") {
+        $iptName.showRule("ids_dlg_pb_nameNullWarning");
+        return false;
+    }
+
+    if (iptNameVal != "" && iptNameVal.length > phoneNameInputLen) {
+        $iptName.showRule("ids_dlg_pb_lenWarning");
+        return false;
+    }
+
+    if (iptNameVal != "" && checkName(iptNameVal)) {
+        $iptName.showRule("ids_dlg_pb_nameRule");
+        return false;
+    }
+
+    if (iptPhoneNumberVal == "") {
+        $iptPhoneNumber.showRule("ids_dlg_pb_NumberNullWarning");
+        return false;
+    }
+
+    if (iptPhoneNumberVal != "" && !isSmsNumber(iptPhoneNumberVal)) {
+        $iptPhoneNumber.showRule("ids_dlg_pb_mobileNumRule");
+        return false;
+    }
+
+    function isSmsNumber(str) {
+        return /^[+]?[0-9]+$/.test(str);
+    }
+
+    function checkName(name) {
+        return (/['\\]/g.test(name))
+    }
+
+    var params = {
+        "pb_id": phoneId,
+        "pb_type": selLocationVal,
+        "pb_name": iptNameVal,
+        "phone_number": iptPhoneNumberVal
+    }
+
+    var result = SDK.PhoneBook.editPhoneBook(params);
+
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.reloadMain();
+        })
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+
+}
+
+//delete phone book
+function deletePhoneBookEvent(type) {
+    var checkboxArray = $("input[name='phoneBookCheckItem']:visible:checked");
+    var checkedLen = checkboxArray.length;
+    var params, successNum = 0;
+
+    if (checkedLen > 0) {
+        sys.confirm("ids_dlg_pb_deleteWarning", function() {
+            $("#btnPhoneBookEdit,#btnPhoneBookDelete").setBtnDisabled();
+            checkboxArray.each(function() {
+                params = {
+                    "pb_type": type,
+                    "pb_id": $(this).attr("data")
+                }
+                var result = SDK.PhoneBook.deletePhoneBook(params)
+                if (result == API_RESULT_SUCCESS) {
+                    successNum += 1
+                }
+            })
+            if (checkedLen == successNum) {
+                sys.alert("ids_success", function() {
+                    page.reloadMain();
+                })
+            } else {
+                sys.alert("ids_fail", function() {
+                    page.reloadMain();
+                })
+            }
+        })
+    }
+}
+</script>
+<style type="text/css">
+</style>
+<div id="phonebooksimCard" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_pb_phoneBook}</h2>
+    </div>
+    <div class="item-content">
+        <h3><a href="#phonebook/phoneBookSetting.html" class="changeLink">${ids_sms_saveSimCard}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div class="settings-con phonebookList connectShow">
+                <div id="phoneBookLocalBox">
+                    <table cellspacing="0" cellpadding="0" id="tableSimPhoneBook">
+                        <!--<tr>
+                        <td colspan="3" align="left" height="30">${ids_pb_storageStatus:}<span class="spanStorageStatus"></span></td>
+                    </tr>-->
+                        <tr>
+                            <th width="20%" class="tdPadding">
+                                <input type="checkbox" name="phoneBookCheck" id="checkAllLocal">${ids_pb_number}</th>
+                            <th width="35%">${ids_pb_name}</th>
+                            <th>${ids_pb_phoneNumber}</th>
+                        </tr>
+                    </table>
+                    <div class="btn-wrap">
+                        <input type="button" id="btnPhoneBookEdit" class="btnNormal" value="${ids_btn_edit}" />
+                        <input type="button" id="btnPhoneBookDelete" class="btnNormal" value="${ids_btn_delete}" />
+                    </div>
+                </div>
+                <div id="eidtPhonebookInfo" class="eidtPhonebook" style="display:none;">
+                    <ul class="ipt-wrap">
+                        <li>
+                            <label class="text">${ids_pb_location}:</label>
+                            <select id="selLocation">
+                                <!--<option value="local">Local</option>-->
+                                <option value="sim">${ids_sms_saveSimCard}</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label class="text">
+                                <span>*</span>${ids_pb_name}:</label>
+                            <input type="text" class="ipt" id="iptName" />
+                            <!--<span style="margin-left: 5px;">${ids_maxLength:}</span> <span id="spnNameLen"></span></span>-->
+                        </li>
+                        <li>
+                            <label class="text">
+                                <span>*</span>${ids_pb_phoneNumber}:</label>
+                            <input type="text" class="ipt" id="iptPhoneNumber" maxlength="40" />
+                        </li>
+                    </ul>
+                    <div class="btn-wrap">
+                        <input type="button" id="btnSavePhone" class="btnNormal" value="${ids_btn_apply}" />
+                        <input type="button" id="btnPhoneBookCancel" class="btnNormal" value="cancel" />
+                        <input type="button" id="btnPhoneBookBack" class="btnNormal" value="back" />
+                    </div>
+                </div>
+            </div>
+            <div class="statusContent" id="simCardStatus"></div>
+        </div>
+    </div>
+</div>

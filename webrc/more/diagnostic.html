@@ -1,0 +1,148 @@
+<div id="diagnosticPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_more}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title">
+            <a href="#more/more.html" class="changeLink">${ids_diagnostic}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable" pageid='diagnostic'>
+            <div  id="hasSmsCard" class="settings-con connectShow">
+                <table class="diagnostic_table">
+                    <tr>
+                        <th>${ids_diagnostic}</th>
+                        <th>${ids_data}</th>
+                    </tr>
+                    <tr>
+                        <td>PLMN</td>
+                        <td id="diagnostic_plmn">--</td>
+                    </tr>
+                    <tr>
+                        <td>RSSI</td>
+                        <td id="diagnostic_rssi">--</td>
+                    </tr>
+                    <tr>
+                        <td>EC/IO</td>
+                        <td id="diagnostic_ec_io">--</td>
+                    </tr>
+                    <tr>
+                        <td>LAC Code</td>
+                        <td id="diagnostic_lac_code">--</td>
+                    </tr>
+                    <tr>
+                        <td>RSCP</td>
+                        <td id="diagnostic_rscp">--</td>
+                    </tr>
+                    <tr>
+                        <td>Cell ID</td>
+                        <td id="diagnostic_cell_id">--</td>
+                    </tr>
+                    <tr>
+                        <td>RSRP</td>
+                        <td id="diagnostic_rsrp">--</td>
+                    </tr>
+                    <tr>
+                        <td>SINR</td>
+                        <td id="diagnostic_sinr">--</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="statusContent" id="simCardStatus"></div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "diagnostic";
+ShowDiagnosticTimeout = null;
+$(function($) {
+    showSmsCardState(simCardState, pinState, simlockState, function() {
+       init();
+    });
+    initScroll($("article#more"));
+});
+
+function init(){
+    startShowDiagnostic()
+}
+function showDiagnostic(){
+    var networkData = SDK.Network.GetNetworkInfo()
+	$("#diagnostic_plmn").html(networkData.PLMN);
+    $("#diagnostic_rssi").html(showdBm(networkData.RSSI));
+    $("#diagnostic_ec_io").html(showEcIo(networkData.EcIo));
+    $("#diagnostic_lac_code").html(showLAC(networkData.LAC));
+    $("#diagnostic_rscp").html(showRSCP(networkData.RSCP));
+    $("#diagnostic_cell_id").html(showSellId(networkData.CellId));
+    $("#diagnostic_rsrp").html(showRSRP(networkData.RSRP));
+    $("#diagnostic_sinr").html(showSINR(networkData.SINR));
+
+    function showEcIo(val){
+        if(val==0.0){
+            return '- -'
+        }else{
+            return showdBm(val)
+        }
+    }
+
+    function showLAC(val){
+        if(val=='0'){
+            return '- -'
+        }else{
+            return val
+        }
+    }
+
+    function showSellId(val){
+        if(val=='0'){
+            return '- -'
+        }else{
+            return val
+        }
+    }
+
+    function showRSCP(val){
+        if(val==-1){
+            return '- -'
+        }else{
+            return showdBm(val)
+        }
+    }
+
+    function showRSRP(val){
+        if(val==-1){
+            return '- -'
+        }else{
+            return showdBm(val)
+        }
+    }
+
+    function showSINR(val){
+        if(val=='FF'){
+            return '- -'
+        }else{
+            return showdBm(val)
+        }
+    }
+
+    function showdBm(val){
+        val = val || "0";
+
+        return val+"dBm"
+    }
+}
+
+function startShowDiagnostic(){
+    if(pageName == 'diagnostic' & $('[pageid="diagnostic"]').size()!=0){
+        showDiagnostic();
+        clearTimeout(ShowDiagnosticTimeout);
+        ShowDiagnosticTimeout=null;
+        ShowDiagnosticTimeout = setTimeout(function(){
+            startShowDiagnostic()
+        },4000)
+    }
+}
+
+</script>

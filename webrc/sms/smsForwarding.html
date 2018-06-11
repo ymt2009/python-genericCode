@@ -1,0 +1,150 @@
+<div id="smsForwardingPage" class="jsTemplate">
+    <div class="smsForwarding">
+        <div class="item-hd clearfix">
+            <h2>
+                <a href="#sms/smsList.html">
+                    <span class="arrow back-icon"></span>${ids_sms_smsForwarding}
+                </a>
+            </h2>
+        </div>
+        <div id="smsContent" class="connectShow">
+
+
+            <div class="item-content">         
+                <div id="hasSmsCard">             
+                    <div class="smsSetting form-horizontal">                 
+                        <ul class="ipt-wrap">                     
+                            <li>
+                                <label class="text">${ids_sms_autoForward}</label>
+                                <label class="vertical">
+                                    <input type="radio" checked name="smsForwardingFlag" value="1" id="automatic"> ${ids_enable}&nbsp;
+                                </label>
+                                <label class="vertical">
+                                    <input type="radio" name="smsForwardingFlag" value="0" id="manual"> ${ids_disable}
+                                </label>                    
+                            </li>                     
+                            <li>                         
+                                <label class="text">${ids_sms_mobileNum}</label>
+                                <label class="vertical">                             
+                                    <input type="text" name="smsForwardPhone" id="smsForwardPhone">
+                                </label>                    
+                            </li>                
+                        </ul>                 
+                        <div class="btn-wrap">              
+                            <input type="button" id="btnApply" class="btnNormal btnDisable" value="${ids_btn_apply}" disabled="disabled">                     
+                            <input type="button" id="btnCancel" class="btnNormal btnDisable" value="${ids_btn_cancel}" disabled="disabled">                 
+                        </div>             
+                    </div>         
+                </div>     
+            </div>
+
+
+
+        </div>
+    </div>
+    <div class="statusContent" id="simCardStatus"></div>
+</div>
+<script>
+currentMenu = 2;
+pageName = "smsForwarding";
+contactMsg = [];
+var SMS_FORWARD_STATUS_ENABLE = 1;
+var SMS_FORWARD_STATUS_DISABLE = 0;
+var redirectSmsNumber;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+/* -------------------------------------------------------------------------
+     class - airbox message list
+     ----------------------------------------------------------------------------- */
+AIRBOX.smsForwarding = (function() {
+    var s = {
+            $content: $("article#sms"),
+            $connectShow: $(".connectShow"),
+            $smsContent: $("#smsContent")
+        },
+    cs = {};
+
+    function init(options) {
+        $.extend(s, options);
+        _initStatus();
+    };
+
+    function _initStatus() {
+        showSmsCardState(simCardState, pinState, simlockState, function() {
+            _initData();
+            _initScroll();
+        });
+    }
+
+    function _initData(){
+        var infoRedirectSms;// = getSMSAutoRedirectSetting();
+        if(infoRedirectSms != null){
+            bEnable = infoRedirectSms.redirectFlag || SMS_FORWARD_STATUS_DISABLE;
+            redirectSmsNumber = infoRedirectSms.redirectNumber;
+            $("#smsForwardPhone").val(redirectSmsNumber);
+            $("input[name=smsForwardingFlag][value="+bEnable+"]").attr("checked",true); 
+        }
+        //_setSmsForwardPhone(bEnable);
+
+        $("input[name=smsForwardingFlag]").change(function(){
+            _setSmsForwardPhone($(this).val());
+        });
+        
+    };
+
+    function _setSmsForwardPhone(num){
+        if(num == 1){
+            $("#smsForwardPhone").removeAttr("disabled");
+        }else{
+            $("#smsForwardPhone").attr("disabled","disabled");
+        }
+    }
+
+    function _initScroll() {
+        $("input").bind("change keydown keyup input paste", function() {
+            $("input[type='button']").removeBtnDisabled()
+        });
+        $("#btnApply").on("click",function(){
+            _applyData();
+        });
+
+    };
+
+    function _applyData(){
+        var $smsForwardPhone = $("#smsForwardPhone");
+        var smsForwardPhoneNum = $.trim($smsForwardPhone.val());
+        var fwdStatus = $("input[name=smsForwardingFlag]:checked").val();
+        if(smsForwardPhoneNum == "" && fwdStatus == SMS_FORWARD_STATUS_ENABLE){
+            $smsForwardPhone.showRule("ids_dlg_sms_smsForwardNumEmpty");
+            return;
+        }
+        if(!isSmsNumber(smsForwardPhoneNum) && fwdStatus == SMS_FORWARD_STATUS_ENABLE){
+            $smsForwardPhone.showRule("ids_dlg_sms_mobileNumRule");
+            return;
+        }
+        $("#btnApply,#btnCancel").setBtnDisabled();
+        var params = {
+            "redirectFlag":fwdStatus,
+            "redirectNumber":fwdStatus == 1 ? smsForwardPhoneNum : redirectSmsNumber
+        }
+    };
+
+    function isSmsNumber(str) {
+        return /^[+]?[0-9]+$/.test(str);
+    }
+
+
+ 
+
+
+ 
+
+    return {
+        init: init,
+        initScrol: _initScroll
+    };
+}())
+
+AIRBOX.smsForwarding.init();
+</script>

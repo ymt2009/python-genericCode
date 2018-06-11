@@ -1,0 +1,316 @@
+/*body background*/
+body{
+    background-color: $color_body_background;
+}
+/*HEADER*/
+.status-wrap .status-bar{
+    background: $color_topStatue_columnBackground;
+}
+.status-wrap .wifi-wrap .count{
+    color: $color_topStatue_wifiCountBackground;
+}
+header li.navigation a,.helplineNumber,.helplineNumberDefault {
+    color: $color_topStatue_navigationFont;
+}
+header ul.navigation li.lng.navigation{
+  border-right: 1px solid $color_topStatue_navigationLine;
+}
+header div.dropdown li a:hover, header div.dropdown li a:focus,header div.TopMenuLan li a:hover, header div.TopMenuLan li a:focus {
+    color: #26c7ed;
+    background: #fff;
+}
+#popinLng div.mobile-lng-popin ul li a.on {
+    color: #26c7ed;
+}
+#popinHelpLng div.mobile-lng-popin ul li a.on {
+    color: #26c7ed;
+}
+.y-lng{
+    border-right:1px solid #26c7ed;
+}
+/*MODULE BACKGROUND*/
+.blue {
+    background: $color_connected;
+}
+.red {
+    background: $color_usage;
+}
+.orange {
+    background: $color_more;
+}
+.pink {
+    background: $color_sms;
+}
+.green {
+    background: $color_settings;
+}
+.yellow {
+    background: $color_sharing;
+}
+.scarlet{
+	background:$color_phonebook;
+}
+/*MODULE TITLE*/
+.blue .item-hd {
+    background: $color_title_connected;
+}
+.red .item-hd {
+    background: $color_title_usage;
+}
+.orange .item-hd {
+    background: $color_title_more;
+}
+.pink .item-hd {
+    background: $color_title_sms;
+}
+.green .item-hd {
+    background: $color_title_settings;
+}
+.yellow .item-hd {
+    background: $color_title_sharing;
+}
+.scarlet .item-hd{
+	background: $color_title_phonebook;
+}
+
+.green .item-content {
+    background: $color_setting_coneterBackground;
+}
+/*INDEX*/
+.blue.conStatus:hover {
+    background: $color_connected_hover;
+}
+.red.usages:hover {
+    background: $color_usage_hover;
+}
+.pink.sms:hover, .pink.sms-noSD:hover {
+    background: $color_sms_hover;
+}
+.green.settings:hover, .green.settings-noSD:hover {
+    background: $color_setting_hover;
+}
+.orange.more:hover {
+    background: $color_more_hover;
+}
+.yellow.sharing:hover {
+    background: $color_sharing_hover;
+}
+.glyphicon-usages {
+    background: url(../images/icon_usage.png) no-repeat center;
+	background-size: contain;
+}
+.glyphicon-more {
+    background: url(../images/icon_more.png) no-repeat center;
+	background-size: contain;
+}
+.glyphicon-sms {
+    background: url(../images/icon_sms.png) no-repeat center;
+	background-size: contain;
+}
+.glyphicon-settings {
+    background: url(../images/icon_settings.png) no-repeat center;
+	background-size: contain;
+}
+.glyphicon-sharing {
+    background: url(../images/icon_sharing.png) no-repeat center;
+	background-size: contain;
+}
+.glyphicon-phoneBook {
+    background: url(../images/icon_phonebook.png) no-repeat center;
+	background-size: contain;
+}
+
+.glyphicon-sms-new{
+    color: #efa4bf;
+}
+/*.green .item-content {
+    background: #abc948;
+}*/
+/*Login*/
+.login_wrap .glyphicon-admin{
+    background-color: $color_login_picBackground;
+}
+.popin input[type=button]{
+    background: $color_button_login;
+    color: #fff;
+}
+.popin input[type=button]:hover, .popin input[type=button]:focus, .popin input[type=button]:active, .popin a.bt:hover, .popin a.bt:active, .popin a.bt:focus {
+    background: $color_button_loginPinPukSimlockHover;
+}
+/*POP PIN*/
+.popin h2{
+    color: $color_title_picPukSimlock;
+}
+/*CONNECTION*/
+.item-connection .state .roaming{
+    color: #26c7ed;
+}
+.item-connection .infos li.icons{
+    border-right: 1px solid $color_connected_borderRight;
+}
+.item-connection .infos li.txt{
+    border-left: 1px solid $color_connected_borderLeft;
+}
+.item-connection .solidline{
+    border-top: 1px solid $color_connected_borderTop;
+    border-bottom: 1px solid $color_connected_borderBottom;
+}
+.item-connection .scroll-pane ul li { 
+    border-top: 1px solid $color_connected_deviceBorderTop;
+    border-bottom: 1px solid $color_connected_deviceBorderBottom;
+}
+.item-connection .user-list .btnNormal{
+    background: $color_connected_activeBlock;
+}
+.item-connection .user-list .btn-unblock{
+    background: $color_connected_unblock;
+}
+.item-connection .user-list .btn-disable{
+    background: $color_connected_disableBlock;
+}
+/*SETTINGS*/
+.item-settings .settings-list{
+    border-bottom: 1px solid #c3dc70;
+    background-color: $color_setting_menuList;
+}
+.settings-list li a, .item-settings .title a{
+    background-color: $color_setting_menuList;
+    border-bottom: 1px solid $color_setting_borderBottom;
+    border-top: 1px solid $color_setting_borderTop;
+}
+.settings-list li a:hover,.item-settings .title a:hover{
+    background-color: $color_setting_menuHover;
+}
+.item-settings .title {
+    box-shadow: 1px 1px 0 0 #a7c936;
+}
+.portForwardingTable td,.portForwardingTable th,.ipFilterTable td,.ipFilterTable th,.urlFilterTableTh td,.urlFilterTableTh th{
+    border: 1px solid #7d913a;    
+    background: #b0cc59;   
+}
+.portForwardingTable th,.ipFilterTable th,.urlFilterTableTh th{
+    background: #9eb750;    
+}
+/*USAGE*/
+.mini-menu-list li:hover{
+    background: #eaeaea;
+}
+.item-usage .solidline {
+    border-bottom: 1px solid $color_usage_borderBottom;
+    border-top: 1px solid $color_usage_borderTop;
+    margin: 10px 0;
+}
+.item-usage .international .roaming{
+    color: #df5555;
+}
+.item-usage .ipt-wrap li p {
+	color:#d1e92d;
+}
+.progress{
+    background-color: $color_usage_progress;
+}
+/*SMS*/
+.item-sms .sms-list .scroll-pane li{
+    border-bottom: 1px solid $color_sms_borderBottom;
+    border-top: 1px solid $color_sms_borderTop;
+}
+.item-sms .scroll-pane span.date{
+    color: #FFDDE9;
+}
+.talk-word {
+    background: $color_sms_contentTextarea;
+}
+/*MORE*/
+.more-list li a,.item-more .item-content h3 a{
+    background-color: $color_more_menuList;
+    border-top: 1px solid $color_more_borderTop;
+    border-bottom: 1px solid $color_more_borderBottom;
+}
+.item-more .more-list{
+    border-bottom: 1px solid #faa057;
+}
+.more-list a:hover, .item-more .item-content h3 a:hover{
+    background-color: $color_more_menuHover;
+}
+.item-more .item-content h3 a{
+    box-shadow: 1px 1px 0 0 #f8a561;
+}
+/*sharing*/
+.sharingMode li{
+    border-bottom: 1px solid $color_sharing_borderBottom;
+}
+/*PHONEBOOK*/
+.phoneBook-list li a,.item-phoneBook .item-content h3 a{
+    background-color: #D63C3C;
+    border-top: 1px solid #BD1515;
+	border-bottom: 1px solid #E45E5E;
+}
+.phoneBook-list a:hover, .item-phoneBook .item-content h3 a:hover{
+    background-color: #E45E5E;
+}
+/*FOOTER*/
+.footer{
+    background: $color_footer;
+}
+/*btn*/
+#container .btnDisable,#popinAuth .btnDisable{
+    background: $color_button_disable;
+    color: $color_button_disableFont;
+}
+/*NEXT & PRE*/
+/* #content article.activePre, #content article.activeNext{ 
+  filter:progid:DXImageTransform.Microsoft.BasicImage(grayscale=1);
+  -webkit-filter: grayscale(100%);
+} */
+
+/*SWITCH BUTTON*/
+a.btnSlide{
+    background: $color_button_slide;
+}
+/*WARNING COLOR*/
+.rule {
+	color: #f00;
+}
+.error{
+	color: #f00;
+}
+.warnColor{
+	color: #f00;
+}
+/*firefox juchi*/
+ 
+@-moz-document url-prefix(){
+	#content .red.activePre,#content .green.activePre,#content .orange.activePre,#content .blue.activePre,#content  .pink.activePre,
+	#content .yellow.activePre { 
+		border-top:1px solid #f0f0f0; 
+		border-bottom:1px solid #f0f0f0;
+	}
+	#content .red.activeNext,#content .green.activeNext,#content .orange.activeNext,#content .blue.activeNext,#content  .pink.activeNext,
+	#content .yellow.activeNext {
+		border-top:1px solid #f0f0f0; 
+		border-bottom:1px solid #f0f0f0;
+	}
+	.green .item-content{
+		text-shadow: 1px 0px 0px #E1E4D9;
+	}
+	.orange .item-content{
+		text-shadow:1px 0px 0px #ECD4C1;
+	}
+	.blue .item-content{
+		text-shadow:1px 0px 0px #D5ECF2;
+	}
+	.pink #smsContent{
+		text-shadow:1px 0px 0px #F0CBCB;
+	}
+	.red .item-content{
+		text-shadow:1px 0px 0px #EACBCB;
+	}
+
+}
+/*ar color*/
+#ar .item-connection .infos li.icons{
+	border-left: 1px solid $color_connected_borderRight;
+}
+#ar .item-connection .infos li.txt{
+	border-right: 1px solid $color_connected_borderLeft;
+}

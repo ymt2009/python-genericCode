@@ -1,0 +1,136 @@
+<div id="powerSavingPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_more}</h2>
+    </div>
+    <div class="item-content">
+        <h3><a href="#more/more.html" class="changeLink">${ids_security_PowerSavingTitle}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div >
+                <div class="settings-con solid-line">
+                    <div class="checkbox">
+                        <label class="text">
+                            ${ids_security_PowerSavingSmart}</label>
+                        <input id="chkSmartMode" type="checkbox" />
+                    </div>
+                    <div id="smartTip" class="description" style="display: none;">${ids_security_PowerSavingSmartTips}</div>
+                </div>
+
+                <div class="settings-con solid-line">
+                    <div class="checkbox">
+                        <label class="text">${ids_security_PowerSavingWiFi}</label>
+                        <input id="chkWiFiMode" type="checkbox" />
+                    </div>
+                    <div id="wifiTip" class="description" style="display: none;">${ids_security_PowerSavingWiFiTips}</div>
+                </div>
+                </br>
+                <div class="btn-wrap">
+                    <button class="btnNormal" id="btnApply">${ids_btn_apply}</button>
+                    <button class="btnNormal" id="btnCancel">${ids_btn_cancel}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "PowerSaving";
+var IS_SMART_MODE_DISABLE = 0;
+var IS_SMART_MODE_ENABLE = 1;
+var IS_WIFI_MODE_DISABLE = 0;
+var IS_WIFI_MODE_ENABLE = 1;
+
+var PowerData = SDK.Power.GetPowerSavingMode();
+var SmartModeStatus = PowerData.SmartMode;
+var WiFiModeStatus = PowerData.WiFiMode;
+
+var $chkSmartMode = $("#chkSmartMode");
+var $chkWiFiMode = $("#chkWiFiMode");
+
+$(function($) {
+    initScroll($("article#more"));
+    initPage();
+    $(".item-more #btnApply, .item-more #btnCancel").setBtnDisabled();
+    $("#chkSmartMode,#chkWiFiMode").on("click input change keyup keydown paste", function() {
+        showTip();    
+        $(".item-more #btnApply, .item-more #btnCancel").removeBtnDisabled();
+    });
+    $(".item-more #btnApply").click(PowerSavingEvent);
+    $(".item-more #btnCancel").click(function() {
+        page.reloadMain();
+    })
+})
+
+function initPage() {
+    $chkSmartMode.attr("checked", SmartModeStatus == IS_SMART_MODE_ENABLE);
+    $chkWiFiMode.attr("checked", WiFiModeStatus == IS_WIFI_MODE_ENABLE);
+    showTip();
+    initSwitchBtn();    
+}
+
+function initSwitchBtn() {
+    function generated($this) {
+        $this.addClass('generated').wrap("<span class='checkbox_container'></span>");
+        $this.before('<ins>&nbsp;</ins>');
+    }
+
+    function checkbox($this) {
+        var $ins = $this.prev("ins");
+        if ($this.is(":checked")) {
+            $ins.addClass("check");
+        } else {
+            $ins.removeClass("check");
+        }
+    }
+    $("input[type=checkbox]").each(function() {
+        var $this = $(this);
+        generated($this);
+        checkbox($this);
+    });
+    $("input[type=checkbox]").on("click touchstart", function() {
+        var $this = $(this);
+        checkbox($this);
+    });
+}
+
+function showTip() {
+    if ($chkSmartMode.is(":checked")) {
+        $("#smartTip").css("display", "");
+    } else {
+        $("#smartTip").css("display", "none");
+    }
+    if ($chkWiFiMode.is(":checked")) {
+        $("#wifiTip").css("display", "");
+    } else {
+        $("#wifiTip").css("display", "none");
+    }
+}
+
+function PowerSavingEvent() {
+    var smartModeValue = $chkSmartMode.attr("checked") ? IS_SMART_MODE_ENABLE : IS_SMART_MODE_DISABLE;
+    var WiFiModeValue = $chkWiFiMode.attr("checked") ? IS_WIFI_MODE_ENABLE : IS_WIFI_MODE_DISABLE;
+    var params = {
+        "SmartMode": smartModeValue,
+        "WiFiMode": WiFiModeValue
+    }
+    var result = SDK.Power.SetPowerSavingMode(params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>

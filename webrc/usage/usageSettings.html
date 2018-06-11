@@ -1,0 +1,237 @@
+<div id="usageSettingsPage" class="jsTemplate">
+  <div class="item-hd clearfix">
+    <h2>
+            <a href="#usage/usageHistory.html">
+                <span class="arrow back-icon"></span>${ids_menu_usageSetting}
+            </a>
+        </h2>
+  </div>
+  <div class="scroll-pane jspScrollable connectShow">
+    <div class="item-content usage-con">
+      <h4>${ids_menu_usage}</h4>
+      <ul class="ipt-wrap">
+        <li>
+          <label class="text">${ids_usage_billingDay:}</label>
+          <input type="text" name="billingDay" id="start_billingDay" value="" class="ipt" maxLength="2" />${ids_usage_day}
+        </li>
+        <li class="clearfix">
+          <label class="text" style="float:left; margin-top:5px;">${ids_usage_monthlyDataPlan:}</label>
+          <input type="text" name="monthlyDataPlan" id="start_monthlyDataPlan" value="" class="ipt" maxLength="4" style="float:left; margin-top:5px;" />
+          <select id="Usage_sec_mode" class="select" style="height:20px; float:left; margin-top:5px; margin-left:2px;">
+            <option value="0" selected="selected">${ids_usage_MB}</option>
+            <option value="1">${ids_usage_GB}</option>
+          </select>
+        </li>
+        <li>
+          <p>${ids_usage_cancelLimitTips}</p>
+        </li>
+        <li>
+          <label class="text">${ids_usage_dataConsumption:}</label>
+          <span id="start_dataConsumption" class="remainTime"></span>
+        </li>
+      </ul>
+      <div class="solidline"></div>
+      <h4>${ids_usage_autoDisconnected}
+                <input type="checkbox" name="pinInit" id="chkAutoDisconnected" value="" class="switch">
+            </h4>
+      <p>${ids_usage_dataUsageReach}</p>
+      <div class="solidline"></div>
+      <h4>
+                ${ids_usage_timeLimit}
+                <input type="checkbox" name="chkTimeLimit" id="chkTimeLimit" value="" class="switch">
+            </h4>
+      <ul class="ipt-wrap">
+        <li>
+          <label class="text">${ids_usage_setTimeLimit}:</label>
+          <input type="text" name="starTime" id="star_time" value="" class="ipt" maxLength="5">
+          <span>${ids_usage_minutesTimes}</span>
+        </li>
+        <li>
+          <label class="text">${ids_usage_timePassed}:</label>
+          <span id="start_timePassed" class="remainTime"></span>
+        </li>
+      </ul>
+      <div class="hidden pdpTimer solidline"></div>
+      <ul class="ipt-wrap">
+        <li class="hidden pdpTimer">
+          <label class="text">${ids_pdpTimer:}</label>
+          <select class="select" id="selPDPTimer">
+            <option value="0">${ids_pdpTimer_0seconds}</option>
+            <option value="5">${ids_pdpTimer_5seconds}</option>
+            <option value="10">${ids_pdpTimer_10seconds}</option>
+            <option value="20">${ids_pdpTimer_20seconds}</option>
+            <option value="30">${ids_pdpTimer_30seconds}</option>
+            <option value="60">${ids_pdpTimer_60seconds}</option>
+            <option value="90">${ids_pdpTimer_90seconds}</option>
+            <option value="120">${ids_pdpTimer_120seconds}</option>
+          </select>
+        </li>
+      </ul>
+      <div class="solidline"></div>
+      <div class="btn-wrap" style="margin-top:19px">
+        <input type="button" id="btnSetUsage" class="btnNormal" value="${ids_btn_save}" />
+        <input type="button" id="btnsetCancel" class="btnNormal" value="${ids_btn_cancel}" />
+      </div>
+    </div>
+    <div class="statusContent" id="simCardStatus"></div>
+  </div>
+</div>
+<script>
+currentMenu = 1;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "usageSettings";
+/*usage setting*/
+var USAGE_TIME_LIMIT_ENABLE = 1;
+var USAGE_TIME_LIMIT_DISABLE = 0;
+var USAGE_AUTO_DISCONN_ENABLE = 1;
+var USAGE_AUTO_DISCONN_DISABLE = 0;
+/* -------------------------------------------------------------------------
+     class - airbox usage
+     ----------------------------------------------------------------------------- */
+var usageSettingsInfo, monthlyDataPlan, TimeLimitFlag, settimelimit, UsedTimes, AutoDisconnFlag, monthlyDataPlanConvert, UsedData, Unit;
+
+var $start_dataConsumption = $("#start_dataConsumption");
+var $chkTimeLimit = $("#chkTimeLimit");
+var $star_time = $("#star_time");
+var $start_timePassed = $("#start_timePassed");
+var $chkAutoDisconnected = $("#chkAutoDisconnected");
+var $start_billingDay = $("#start_billingDay");
+var $start_monthlyDataPlan = $("#start_monthlyDataPlan");
+var $Usage_sec_mode = $("#Usage_sec_mode");
+$(document).ready(function() {
+  showSmsCardState(simCardState, pinState, simlockState, function() {
+    init();
+  });
+});
+
+function init() {
+  initScroll($("article#usage"));
+  _initStatus();
+  $("article.active input[type='button']").setBtnDisabled();
+  $("article.active select,article.active input").bind("change keydown keyup input paste", function() {
+      $("article.active input[type='button']").removeBtnDisabled()
+    })
+    //  save and cancel function
+  $("#btnSetUsage").on("click", function(event) {
+    event.preventDefault();
+    setUseageEvent();
+  });
+  $("#btnsetCancel").click(page.reloadMain);
+  /*Time limit check event*/
+  $chkTimeLimit.on("change", function() {
+    initStarTime();
+  });
+};
+
+function initStarTime() {
+  if ($chkTimeLimit.prop("checked")) {
+    $star_time.attr("disabled", false);
+  } else {
+    $star_time.attr("disabled", true);
+  }
+}
+
+function _initStatus() {
+  usageSettingsInfo = SDK.Statistics.GetUsageSettings();
+  monthlyDataPlan = usageSettingsInfo.MonthlyPlan;
+  TimeLimitFlag = usageSettingsInfo.TimeLimitFlag;
+  settimelimit = usageSettingsInfo.Settimelimit;
+  UsedTimes = usageSettingsInfo.UsedTimes;
+  AutoDisconnFlag = usageSettingsInfo.AutoDisconnFlag;
+  UsedData = SDK.Statistics.GetUsageRecord().HUseData;
+  Unit = usageSettingsInfo.Unit;
+  if (Unit == 0) {
+    monthlyDataPlanConvert = monthlyDataPlan / 1024 / 1024;
+  } else if (Unit == 1) {
+    monthlyDataPlanConvert = monthlyDataPlan / 1024 / 1024 / 1024;
+  } else if (Unit == 2) {
+    monthlyDataPlanConvert = monthlyDataPlan / 1024;
+  }
+  if (config.SupportPDPTimer) {
+    $(".pdpTimer").removeClass("hidden");
+    var PDPTime = SDK.PDPTimer.GetFDTimer();
+    $("#selPDPTimer").val(PDPTime.FDTimer);
+  } else {
+    $(".pdpTimer").remove();
+  }
+  $start_billingDay.val(usageSettingsInfo.BillingDay);
+  $start_monthlyDataPlan.val(monthlyDataPlanConvert);
+  $Usage_sec_mode.val(usageSettingsInfo.Unit);
+  $start_dataConsumption.html(sys.covertNum(UsedData));
+  $star_time.val(usageSettingsInfo.TimeLimitTimes);
+  $start_timePassed.html(getTimePassed(60 * UsedTimes));
+  $chkAutoDisconnected.attr("checked", AutoDisconnFlag == USAGE_AUTO_DISCONN_ENABLE ? true : false);
+  $chkTimeLimit.attr("checked", TimeLimitFlag == USAGE_TIME_LIMIT_ENABLE ? true : false);
+  initStarTime();
+}
+
+function setUseageEvent() {
+  var startime = $.trim($star_time.val());
+  var startmonthlyDataPlan = $.trim($start_monthlyDataPlan.val());
+  var startbillingDay = $.trim($start_billingDay.val());
+  var chkTimeLimit = ($chkTimeLimit.prop("checked") == true || $chkTimeLimit.prop('checked') == "checked") ? USAGE_TIME_LIMIT_ENABLE : USAGE_TIME_LIMIT_DISABLE;
+  var chkAutoDisconnected = ($chkAutoDisconnected.prop("checked") == true || $chkAutoDisconnected.prop('checked') == "checked") ? USAGE_AUTO_DISCONN_ENABLE : USAGE_AUTO_DISCONN_DISABLE;
+  var Usagesec_mode = $Usage_sec_mode.val();
+  if (startbillingDay < 1 || startbillingDay == "" || startbillingDay > 31 || !isNumber(startbillingDay)) {
+    $start_billingDay.showRule("ids_usage_billingTimeTips");
+    return;
+  }
+  if (startmonthlyDataPlan < 0 || startmonthlyDataPlan > 1024 || startmonthlyDataPlan == "" || !isNumber(startmonthlyDataPlan)) {
+    $start_monthlyDataPlan.showRule("ids_usage_mothlyDataTips");
+    return;
+  }
+  if ($chkTimeLimit.attr("checked") == "checked") {
+    if (startime < 1 || startime > 43200 || startime == "" || !isNumber(startime)) {
+      $star_time.showRule("ids_usage_startTimeTips");
+      return;
+    }
+  } else {
+    startime = usageSettingsInfo.TimeLimitTimes;
+  }
+
+  if (Usagesec_mode == "0") {
+    startmonthlyDataPlan = startmonthlyDataPlan * 1024 * 1024;
+  } else if (Usagesec_mode == "1") {
+    startmonthlyDataPlan = startmonthlyDataPlan * 1024 * 1024 * 1024;
+  }
+  var params = {
+    "BillingDay": Number(startbillingDay),
+    "MonthlyPlan": Number(startmonthlyDataPlan),
+    "UsedData": usageSettingsInfo.UsedData,
+    "TimeLimitFlag": Number(chkTimeLimit),
+    "TimeLimitTimes": Number(startime),
+    "UsedTimes": usageSettingsInfo.UsedTimes,
+    "AutoDisconnFlag": Number(chkAutoDisconnected),
+    "Unit": Number(Usagesec_mode)
+  };
+  var result = SDK.Statistics.SetUsageSettings(params);
+  if (config.SupportPDPTimer) {
+    var pdpTime = parseInt($("#selPDPTimer").val());
+    var pdpTimerResult = SDK.PDPTimer.SetFDTimer(pdpTime);
+    
+    if (result == 0 && pdpTimerResult == 0) {
+      sys.alert("ids_success", function() {
+        page.reloadMain();
+      })
+    } else {
+      sys.alert("ids_fail", function() {
+        page.reloadMain();
+      })
+    }
+  } else {
+    switch (result) {
+      case 0:
+        sys.alert("ids_success", function() {
+          page.reloadMain();
+        })
+        break;
+      default:
+        sys.alert("ids_fail", function() {
+          page.reloadMain();
+        })
+    }
+  }
+}
+</script>

@@ -1,0 +1,117 @@
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+var firewallData = SDK.Firewall.GetFirewallSwitch();
+var firewallStatus = firewallData.firewall_status;
+var ipFilterStatus = firewallData.ipflt_status;
+var wanPingStatus = firewallData.wan_ping_status;
+var DISABLE = 0;
+var ENABLE = 1;
+var $enableFirewall = $("#chkEnableFirewall");
+var $enableIpFilter = $("#chkEnableIpFilter");
+
+$(document).ready(function() {
+    initScroll($("article#settings"));
+
+    var url = document.location.href.replace(/.*#/, "");
+    var currCM = $("a[href$='" + url + "']");
+    currCM.addClass("currentSecurityMenu");
+    initPage();
+    $enableFirewall.click(function() {
+        firewallStatusChange();
+    })
+    $("#btnApply").click(setFirewallEvent);
+    $("#btnCancel").click(function() {
+        page.reloadMain();
+    })
+    $("#btnApply,#btnCancel").setBtnDisabled();
+    $("#chkEnableFirewall, #chkEnableIpFilter").bind("input change keyup keydown paste", function() {
+        $("#btnApply,#btnCancel").removeBtnDisabled();
+    })
+})
+
+function initPage() {
+    if (firewallStatus == DISABLE) {
+        $enableFirewall.attr("checked", false);
+        $enableIpFilter.attr("checked", false).attr("disabled", true);
+    } else if (firewallStatus == ENABLE) {
+        $enableFirewall.attr("checked", true);
+        if (ipFilterStatus == ENABLE) {
+            $enableIpFilter.attr("checked", true);
+        } else if (ipFilterStatus == DISABLE) {
+            $enableIpFilter.attr("checked", false);
+        }
+    }
+}
+
+function firewallStatusChange() {
+    if ($enableFirewall.is(":checked") == true) {
+        $enableIpFilter.attr("disabled", false);
+    } else if ($enableFirewall.is(":checked") == false) {
+        $enableIpFilter.attr("disabled", true).attr("checked", false);
+    }
+}
+
+function setFirewallEvent() {
+    if ($enableFirewall.is(":checked") == true) {
+        firewallStatus = ENABLE;
+        if ($enableIpFilter.is(":checked") == true) {
+            ipFilterStatus = ENABLE;
+        } else {
+            ipFilterStatus = DISABLE;
+        }
+    } else if ($enableFirewall.is(":checked") == false) {
+        firewallStatus = DISABLE;
+        ipFilterStatus = DISABLE;
+    }
+    var params = {
+        "firewall_status": firewallStatus,
+        "ipflt_status": ipFilterStatus,
+        "wan_ping_status": wanPingStatus
+    }
+    var result = SDK.Firewall.SetFirewallSwitch(params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>
+<div id="firewallSettingPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_firewallSwitch}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+            <div class="security settings-con">
+                <!--<p class="des">${ids_security_firewallDes}</p>-->
+                <ul class="ipt-wrap">
+                    <li>
+                        <input id="chkEnableFirewall" type="checkbox" name="firewallswitch">${ids_security_enableFirewall}</p>
+                    </li>
+                    <li>
+                        <input id="chkEnableIpFilter" type="checkbox" name="firewallswitch">${ids_security_enableIp}</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-wrap">
+                <button class="btnNormal" id="btnApply">${ids_btn_apply}</button>
+                <button class="btnNormal" id="btnCancel">${ids_btn_cancel}</button>
+            </div>
+        </div>
+    </div>
+</div>

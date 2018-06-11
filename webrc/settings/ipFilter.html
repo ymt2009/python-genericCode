@@ -1,0 +1,428 @@
+<script>
+currentMenu = 3;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "ipFilter";
+var IPFILTER_LEN_MAX = config.MaxIpfilterNum;
+var PORT_LEN_MAX = 65535;
+var PORT_LEN_MIN = 0;
+var ipFilterData = SDK.Firewall.GetIPFilterList();
+var ipFilterList = ipFilterData.ipFilter_list;
+var ipFilterNum = ipFilterData.total_num;
+
+var firewallSwitch = SDK.Firewall.GetFirewallSwitch();
+var ipFilterStatus = firewallSwitch.ipflt_status;
+
+var routerData = SDK.LAN.GetLanSettings();
+var gatewayIP = routerData.IPv4IPAddress;
+var subnetIP = routerData.SubnetMask;
+
+var applyClick;
+var thisLineNum;
+
+function initPage() {
+    if (ipFilterStatus == 0 || ipFilterNum >= IPFILTER_LEN_MAX) {
+        $("#btnAdd").setBtnDisabled();
+    } else {
+        $("#btnAdd").removeBtnDisabled();
+    }
+	$("#btnApply,#btnCancel").setBtnDisabled();
+	$(".ipt-wrap input,.ipt-wrap select").attr("disabled", true);
+}
+
+/* When ciick "Edit", Promote dialog box and show the data in every form.*/
+function showData(list_id) {
+    $.each(ipFilterList, function(i, v) {
+        if (v.list_id == list_id) {
+            $("#iptLanAddr").val(v.lan_ip);
+            $("#iptIpPort").val(v.lan_port);
+            $("#iptWanAddr").val(v.wan_ip);
+            $("#iptWanPort").val(v.wan_port);
+            $("#selProtocol").val(v.ip_protocol);
+            $("#selStatus").val(v.ip_status);
+        }
+    })
+}
+
+
+function showList(ipFilterList) {
+    if ($.isArray(ipFilterList) && ipFilterNum > 0) {
+        var htmlS = "";
+        $.each(ipFilterList, function(i, v) {
+            htmlS += makeList(i, v);
+        })
+        $("#ipFilterListTb").append(htmlS);
+    }
+}
+
+function makeList(i, o) {
+    if ($.isPlainObject(o)) {
+        var htmlStr = "";
+        htmlStr += "<tr class='trList' id='trIpFilter" + i + "'>";
+        htmlStr += "<td>" + o.lan_ip + "</td>";
+        htmlStr += "<td>" + o.lan_port + "</td>";
+        htmlStr += "<td>" + o.wan_ip + "</td>";
+        htmlStr += "<td>" + o.wan_port + "</td>";
+        htmlStr += "<td>" + creatProtocol(o.ip_protocol) + "</td>";
+        htmlStr += "<td>" + creatStatus(o.ip_status) + "</td>";
+        htmlStr += "<td align='center'><span class='editIpFilter' id='editIpFilter" + i + "'></span> <span class='deleteIpFilter' id='deleteIpFilter" + i + "'></a></td></tr>";
+        return htmlStr;
+    }
+	
+}
+
+/****************** Add function **********************/
+
+function addEvent() {
+    var sameIpFilter = true;
+    if (dataValidation() == false) {
+        return;
+    } else {
+        var params = {
+            "lan_ip": dataValidation().lan_ip,
+            "lan_port": parseInt(dataValidation().lan_port),
+            "wan_ip": dataValidation().wan_ip,
+            "wan_port": parseInt(dataValidation().wan_port),
+            "ip_protocol": parseInt(dataValidation().ip_protocol),
+            "ip_status": parseInt(dataValidation().ip_status)
+        }
+
+        /*$.each(ipFilterList, function(i, v) {
+            if (returnResult.lan_ip == v.lan_ip && returnResult.lan_port == v.lan_port && returnResult.wan_ip == v.wan_ip && returnResult.wan_port == v.wan_port && (returnResult.ip_protocol == v.ip_protocol || 3 * returnResult.ip_protocol < v.ip_protocol)) {
+                sameIpFilter = false;
+                return false;
+            }
+        })
+
+        if (!sameIpFilter) {
+            sys.alert("ids_security_ipFilterWarn");
+            return false;
+        }*/
+        var result = SDK.Firewall.AddIPFilter(params);
+        showResult(result);
+    }
+}
+
+/****************** Edit function **********************/
+
+function editEvent(listId) {
+    var sameIpFilter = true;
+    var returnResult = dataValidation();
+    if (returnResult == false) {
+        return;
+    } else {
+        var params = {
+            "list_id": parseInt(listId),
+            "lan_ip": returnResult.lan_ip,
+            "lan_port": parseInt(returnResult.lan_port),
+            "wan_ip": returnResult.wan_ip,
+            "wan_port": parseInt(returnResult.wan_port),
+            "ip_protocol": parseInt(returnResult.ip_protocol),
+            "ip_status": parseInt(returnResult.ip_status)
+        }
+
+        $.each(ipFilterList, function(i, v) {
+            if (i != listId && returnResult.lan_ip == v.lan_ip && returnResult.lan_port == v.lan_port && returnResult.wan_ip == v.wan_ip && returnResult.wan_port == v.wan_port && (returnResult.ip_protocol == v.ip_protocol || 3 * returnResult.ip_protocol < v.ip_protocol)) {
+                sameIpFilter = false;
+                return false;
+            }
+        })
+
+        if (!sameIpFilter) {
+            sys.alert("ids_security_ipFilterWarn");
+            return false;
+        }
+
+        var result = SDK.Firewall.EditIPFilter(params);
+        showResult(result);
+    }
+}
+
+/****************** Delete function **********************/
+
+function delEvent(listId) {
+    sys.confirm(sys.getRes("ids_profile_deleteWarn"), function() {
+        var params = {
+            "ip_id": parseInt(listId)
+        }
+        var result = SDK.Firewall.DeleteIPFilter(params);
+        showResult(result);
+    })
+}
+
+function showResult(result) {
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+/****************** verify the data before submit  **********************/
+
+function dataValidation() {
+    var lanAddrVal, lanPortVal, wanAddrVal, wanPortVal, protocolVal, statusVal;
+    lanAddrVal = $.trim($("#iptLanAddr").val());
+    lanPortVal = $.trim($("#iptIpPort").val());
+    wanAddrVal = $.trim($("#iptWanAddr").val());
+    wanPortVal = $.trim($("#iptWanPort").val());
+    protocolVal = $("#selProtocol").val();
+    statusVal = $("#selStatus").val();
+
+    if (lanAddrVal == "") {
+        $("#iptLanAddr").showRule("ids_router_ipAddrEmpty");
+        return false;
+    }
+    if (!isValidIpAddress(lanAddrVal)) {
+        $("#iptLanAddr").showRule("ids_router_ipAddrInvalid");
+        return false;
+    }
+    if (!IsSameSubnetAddrs(lanAddrVal, gatewayIP, subnetIP)) {
+        $("#iptLanAddr").showRule("ids_security_subnetWarn");
+        return false;
+    }
+    if (!isSameSubnetAvailableIp(lanAddrVal, gatewayIP)) {
+        $("#iptLanAddr").showRule("ids_router_ipRule");
+        return false;
+    }
+    if ((lanPortVal < PORT_LEN_MIN || lanPortVal > PORT_LEN_MAX) || (!isNumber(lanPortVal))) {
+        $("#iptIpPort").showRule("ids_security_ipFilterPort");
+        return false;
+    }
+    if (wanAddrVal == "") {
+        $("#iptWanAddr").showRule("ids_router_ipAddrEmpty");
+        return false;
+    }
+    if (!isValidIpAddress(wanAddrVal)) {
+        $("#iptWanAddr").showRule("ids_router_ipAddrInvalid");
+        return false;
+    }
+    if ((wanPortVal < PORT_LEN_MIN || wanPortVal > PORT_LEN_MAX) || (!isNumber(wanPortVal))) {
+        $("#iptWanPort").showRule("ids_security_ipFilterPort");
+        return false;
+    }
+
+    return {
+        lan_ip: lanAddrVal,
+        lan_port: lanPortVal,
+        wan_ip: wanAddrVal,
+        wan_port: wanPortVal,
+        ip_protocol: protocolVal,
+        ip_status: statusVal
+    };
+}
+
+function creatProtocol(val) {
+    var protocolText = "";
+    if (val != null || val != "") {
+        if (val == 6) {
+            protocolText = "TCP";
+        } else if (val == 17) {
+            protocolText = "UDP";
+        } else if (val == 253) {
+            protocolText = "TCP/UDP";
+        }
+    }
+    return protocolText;
+}
+
+function creatStatus(val) {
+    var statusText = "";
+    if (val == 0) {
+        statusText = sys.getRes("ids_wifi_off");
+    } else if (val == 1) {
+        statusText = sys.getRes("ids_wifi_on");
+    }
+    return statusText;
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+$(document).ready(function() {
+    initScroll($("article#settings"));
+    showList(ipFilterList);
+    initPage();
+
+    $("#btnAdd").click(function() {
+        //$(".security").css("display", "none");
+        //$("#addIpFilterContent").css("display", "");
+		applyClick ="add";
+		$("#btnAdd").setBtnDisabled();
+		$("#btnApply,#btnCancel").removeBtnDisabled();
+		$(".ipt-wrap input,.ipt-wrap select").attr("disabled", false);
+        $("#iptLanAddr").focus();
+    });
+	$("#btnApply").on("click", function() {
+		//(".iptText").removeClass("errorIpt");
+		//(".rule").remove();
+		if (applyClick == "add") {
+            addEvent();
+        }/* else {
+			editEvent(thisLineNum);
+        }*/
+	});
+	$("#btnCancel").click(function() {
+		page.reloadMain();
+	});
+	if (ipFilterStatus == 1) {
+		$(".deleteIpFilter").click(function() { //Click "Delete" function
+			var thisLineId = $(this).attr("id");
+			var thisLineNum = thisLineId.slice(14);
+			delEvent(thisLineNum);
+		});
+		$(".editIpFilter").click(function() { //Click "Edit" function
+				//$(".security").css("display", "none");
+			   //$("#addIpFilterContent").css("display", "");
+			   $("#btnAdd").setBtnDisabled();
+			   $("#btnCancel").removeBtnDisabled();
+			   $(".ipt-wrap input,.ipt-wrap select").attr("disabled", false);
+			   applyClick ="edit";
+				$("#iptLanAddr").focus();
+	
+				var thisLineId = $(this).attr("id");
+				var thisLineNum = thisLineId.slice(12);
+				showData(thisLineNum);
+				$("#btnApply").setBtnDisabled();
+				$(".addIpFilterContent input, .addIpFilterContent select").bind("input change keyup keydown paste", function() {
+					$("#btnApply").removeBtnDisabled();
+				})
+			   $("#btnApply").bind("click", function() {
+					$(".iptText").removeClass("errorIpt");
+					$(".rule").remove();
+				   editEvent(thisLineNum);
+				})
+		})
+	}
+
+    //if (ipFilterStatus == 1) {
+//        $(".editIpFilter").click(function() { //Click "Edit" function
+//            //$(".security").css("display", "none");
+//            //$("#addIpFilterContent").css("display", "");
+//            $("#iptLanAddr").focus();
+//
+//            var thisLineId = $(this).attr("id");
+//            var thisLineNum = thisLineId.slice(12);
+//            showData(thisLineNum);
+//            $("#btnApply").setBtnDisabled();
+//            /*$(".addIpFilterContent input, .addIpFilterContent select").bind("input change keyup keydown paste", function() {
+//                $("#btnApply").removeBtnDisabled();
+//            })*/
+//           /* $("#btnApply").bind("click", function() {
+//                $(".iptText").removeClass("errorIpt");
+//                $(".rule").remove();
+//                editEvent(thisLineNum);
+//            })*/
+//        })
+//
+//        $(".deleteIpFilter").click(function() { //Click "Delete" function
+//            var thisLineId = $(this).attr("id");
+//            var thisLineNum = thisLineId.slice(14);
+//            delEvent(thisLineNum);
+//        })
+//    }
+})
+</script>
+
+<div id="ipFilterPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+    <div class="item-content">
+
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_ipFilter}</a>
+        </h3>
+        <div class="scroll-pane jspScrollable">
+
+            <!--<div class="security settings-con">
+                <p class="des">${ids_security_ipFilterDes}</p>
+                <ul class="ulStyle">
+                    <li>${ids_security_ipLanWan}</li>
+                    <li>${ids_security_numRule}</li>
+                </ul>
+                </br>
+                <div style="overflow-x:scroll;">
+                    <table class="ipFilterTable" id="ipFilterListTb" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <th width="140">${ids_security_lanIpAddr}</th>
+                            <th width="85">${ids_security_lanPort}</th>
+                            <th width="140">${ids_security_wanIpAddr}</th>
+                            <th width="85">${ids_security_wanPort}</th>
+                            <th width="100">${ids_profile_protocal}</th>
+                            <th width="100">${ids_net_status}</th>
+                            <th width="130">${ids_security_ipOption}</th>
+                        </tr>
+                    </table>
+                    <div class="buttonWrap" style="margin:10px auto; float:right;">
+                        <button class="btnNormal" id="btnAdd">${ids_security_btnAdd}</button>
+                    </div>
+                </div>
+            </div>-->
+            <div id="addIpFilterContent" class="settings-con">
+                <div class="addIpFilterContent">
+                    <p class="warnColor">(${ids_security_ipLanWan})</p>
+                    <ul class="ipt-wrap">
+                        <li>
+                            <label class="text">${ids_security_lanIpAddr:}</label>
+                            <input type="text" class="iptText" id="iptLanAddr" />
+                        </li>
+                        <li>
+                            <label class="text">${ids_security_lanPort:}</label>
+                            <input type="text" class="iptText" id="iptIpPort" />
+                        </li>
+                        <li>
+                            <label class="text">${ids_security_wanIpAddr:}</label>
+                            <input type="text" class="iptText" id="iptWanAddr" />
+                        </li>
+                        <li>
+                            <label class="text">${ids_security_wanPort:}</label>
+                            <input type="text" class="iptText" id="iptWanPort" />
+                        </li>
+                        <li>
+                            <label class="text">${ids_profile_protocal:}</label>
+                            <select class="select" id="selProtocol">
+                                <option value="6">TCP</option>
+                                <option value="17">UDP</option>
+                                <option value="253">TCP/UDP</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label class="text">${ids_net_status:}</label>
+                            <select class="select" id="selStatus">
+                                <option value="0">${ids_wifi_off}</option>
+                                <option value="1">${ids_wifi_on}</option>
+                            </select>
+                        </li>
+                    </ul>
+                <div class="btn-wrap">
+                    <input type="button" class="btnNormal" id="btnAdd" value="${ids_btn_add}" />
+                    <input type="button" class="btnNormal" id="btnApply" value="${ids_btn_apply}" />
+                    <input type="button" class="btnNormal" id="btnCancel" value="${ids_btn_cancel}" />
+                </div>
+                    <br />
+                    <div style="overflow-x:scroll;">
+                    <h4>${ids_security_ipFilterList}</h4>
+                    <p class="warnColor">(${ids_security_numRule})</p>
+                    <table class="ipFilterTable" id="ipFilterListTb" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <th width="140">${ids_security_lanIpAddr}</th>
+                            <th width="85">${ids_security_lanPort}</th>
+                            <th width="140">${ids_security_wanIpAddr}</th>
+                            <th width="85">${ids_security_wanPort}</th>
+                            <th width="100">${ids_profile_protocal}</th>
+                            <th width="100">${ids_net_status}</th>
+                            <th width="130">${ids_security_ipOption}</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

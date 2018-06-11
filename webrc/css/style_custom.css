@@ -1,0 +1,747 @@
+/* body{
+    font-family: "Vodafone Rg";
+} */
+
+a {
+    color: #666;
+}
+
+header ul.navigation {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: "Vodafone Rg";
+}
+
+.nw-name {
+    font-size: 24px;
+    font-weight: bold;
+    font-family: "Vodafone Rg";
+}
+
+.content .conStatus,
+.content .usages,
+.content .logo,
+.content .more,
+.content .sms,
+.content .settings,
+.content .sharing,
+.content .sms-noSD,
+.content .settings-noSD,
+.content .phonebook,
+.content .connectDialModule {
+    font-size: 18px;
+    font-family: "Vodafone Rg";
+}
+
+.item-usage .dashboard {
+    font-size: 18px;
+    font-family: "Vodafone Rg";
+}
+
+#infos-network .icons {
+    position: relative;
+}
+
+.connection-roaming {
+    display: block;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    right: 2%;
+    top: 0%;
+    background: url(../images/sprite_index.png) no-repeat 0 -58px;
+}
+
+.content .conStatus {
+    border: 1px solid #f4f4f4\0\9;
+    -webkit-box-shadow: 0px 1px 3px #4e4e4e;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color='#b1b1b1', direction=120, strength=3);
+    /*ie*/
+}
+
+.conStatus {
+    width: 98.6%;
+}
+
+.content .usages {
+    color: #9C2AA0;
+    border: 1px solid #f4f4f4\0\9;
+    font-weight: bold;
+    -webkit-box-shadow: 0px 1px 3px #b1b1b1;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color=#b1b1b1, direction=120, strength=3);
+    /*ie*/
+}
+
+.content .more {
+    color: #A8B400;
+    border: 1px solid #f4f4f4\0\9;
+    font-weight: bold;
+    -webkit-box-shadow: 0px 1px 3px #b1b1b1;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color=#b1b1b1, direction=120, strength=3);
+    /*ie*/
+}
+
+.content .sms {
+    color: #00B0CA;
+    border: 1px solid #f4f4f4\0\9;
+    font-weight: bold;
+    -webkit-box-shadow: 0px 1px 3px #b1b1b1;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color=#b1b1b1, direction=120, strength=3);
+    /*ie*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(color='#b1b1b1',direction=120,strength=3)";
+}
+
+.content .settings {
+    color: #666;
+    border: 1px solid #f4f4f4\0\9;
+    font-weight: bold;
+    -webkit-box-shadow: 0px 1px 3px #b1b1b1;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color=#b1b1b1, direction=120, strength=3);
+    /*ie*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#b1b1b1')";
+}
+
+.flow article.active,
+#content article.activeNext,
+#content article.activePre {
+    border: 1px solid #f4f4f4\0\9;
+    -webkit-box-shadow: 0px 1px 3px #b1b1b1;
+    /*safari或chrome*/
+    -moz-box-shadow: 0px 1px 3px #b1b1b1;
+    /*firefox*/
+    box-shadow: 0px 1px 3px #b1b1b1;
+    /*opera或ie9*/
+    filter: progid: DXImageTransform.Microsoft.Shadow(color=#b1b1b1, direction=120, strength=3);
+    /*ie*/
+}
+
+.connectDialBtn {
+    width: 65%;
+}
+
+.connectDialModule {
+    width: 32%;
+    border: 1px solid #e0e0e0;
+}
+
+.usages,
+.more,
+.sms,
+.settings,
+.sharing,
+.phonebook {
+    width: 32%;
+}
+
+.sms-noSD,
+.settings-noSD {
+    width: 48.5%;
+}
+
+.settings-list li a,
+.more-list li a,
+.phoneBook-list li a,
+.item-settings .item-content .title a,
+.item-more .item-content h3 a,
+.flow article.item,
+.item-sms .sms-list .scroll-pane li.unread .contact-text,
+.item-sms .scroll-pane span.date,
+.item-sms a.linkSmsNew.button,
+.status-wrap li,
+.mac-link a {
+    color: #666;
+}
+
+.ContentFlow .item-hd h2 {
+    color: #fff;
+}
+
+.item-connection .infos span.icon.battery6 {
+    height: 65px;
+    margin-top: -5px;
+}
+
+.status-wrap .battery-icon,
+.status-wrap .battery-icon-wrap {
+    height: 21px;
+}
+
+.status-wrap .battery0 {
+    background-position: -121px -3px;
+}
+
+.status-wrap .battery10 {
+    background-position: -121px -48px;
+}
+
+.status-wrap .battery5 {
+    background-position: -121px -25px;
+}
+
+.status-wrap .battery100 {
+    background-position: -121px -97px;
+}
+
+.status-wrap .battery-icon-wrap {
+    margin-top: 4px;
+}
+
+.status-wrap .battery-icon-wrap .bar {
+    background: url(../images/icon_statusbar.png) no-repeat -99px -63px !important;
+}
+
+.status-wrap li {
+    margin-top: 4px;
+}
+
+.downloadImg {
+    background: url(../images/icon_statusbar.png) no-repeat 16px -59px;
+}
+
+.status-wrap .home a,
+.status-wrap .singal-wrap {
+    width: 24px;
+}
+
+.status-wrap .icon {
+    height: 24px;
+}
+
+.status-wrap .singal-wrap .singal4 {
+    background-position: -24px -95px;
+}
+
+.status-wrap .singal-wrap .singal3 {
+    background-position: -24px -72px;
+}
+
+.status-wrap .singal-wrap .singal2 {
+    background-position: -24px -47px;
+}
+
+.status-wrap .singal-wrap .singal1 {
+    background-position: -24px -23px;
+}
+
+.status-wrap .singal-wrap .singal0 {
+    background-position: -24px 1px;
+}
+
+.status-wrap .wifi-wrap {
+    width: 24px!important;
+}
+
+.status-wrap .wifi0 {
+    background-position: -49px 0;
+}
+
+.status-wrap .wifi1 {
+    background-position: -49px -24px;
+}
+
+.status-wrap .singal-wrap .roaming {
+    background-position: 0px -26px;
+    left: 1px;
+}
+
+.status-wrap .wifi-wrap .count {
+    background-position: 0 -44px;
+    right: -2px;
+    top: 1px;
+}
+
+.status-wrap .network-wrap {
+    width: 24px;
+}
+
+.status-wrap .network0 {
+    background-position: -72px 0;
+}
+
+.status-wrap .network1 {
+    background-position: -72px -24px;
+}
+
+.status-wrap .sms-wrap {
+    width: 24px;
+}
+
+.status-wrap .sms-wrap .sms3 {
+    background-position: -96px -24px;
+}
+
+.status-wrap .sms-wrap .sms1 {
+    background-position: -96px 0;
+}
+
+.status-wrap .nw-type {
+    line-height: 24px;
+    font-size: 18px;
+}
+
+.index .nw-type {
+    font-family: "Vodafone Rg";
+    font-size: 18px;
+}
+
+.flow article.item {
+    /* border: 1px solid #e0e0e0; */
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    -webkit-box-reflect: none;
+    -moz-box-reflect: none;
+    -reflect: none;
+}
+
+#content article.activePre {
+    -o-transform: scale(0.8);
+    transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -webkit-transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -moz-transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -ms-transform: scale(0.8)\0;
+    -ms-transform: scale(0.8) perspective(200px) rotateY(0deg)\9\0;
+}
+
+#content article.activeNext {
+    -o-transform: scale(0.8);
+    transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -webkit-transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -moz-transform: scale(0.8) perspective(200px) rotateY(0deg);
+    -ms-transform: scale(0.8)\0;
+    -ms-transform: scale(0.8) perspective(200px) rotateY(0deg)\9\0;
+}
+
+.flow .orange .item-hd,
+.flow .blue .item-hd,
+.flow .red .item-hd,
+.flow .pink .item-hd,
+.flow .green .item-hd,
+.flow .yellow .item-hd {
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+
+.item-more .more-list {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.item-more .item-content h3 a,
+.item-settings .title {
+    box-shadow: 1px 1px 0 0 #e0e0e0;
+}
+
+.mini-menu-list {
+    border: 1px solid #e0e0e0;
+}
+
+.item-sms p.total {
+    background: rgba(0, 176, 202, 0.2) none repeat scroll !important;
+    filter: progid: DXImageTransform.Microsoft.gradient(enabled='true', startColorstr='#c1f2f9', endColorstr='#c1f2f9');
+}
+
+.ussd-console .con {
+    border: 1px solid #cccccc;
+}
+
+button,
+input[type="text"],
+select,
+textarea,
+input[type="password"],
+input[type="button"],
+input[type="checkbox"],
+input[type="reset"],
+input[type="submit"] {
+    border: 1px solid #e0e0e0;
+}
+
+.item-connection .user-title {
+    background: rgba(230, 0, 0, 0.2) none repeat scroll !important;
+    filter: progid: DXImageTransform.Microsoft.gradient(enabled='true', startColorstr='#fdc9c9', endColorstr='#fdc9c9');
+}
+
+.item-sms .sms-list .scroll-pane li {
+    border-bottom: 1px solid #e0e0e0;
+    border-top: 0 none;
+}
+
+.item-sms .sms-list .scroll-pane li .contact-text {
+    color: #666;
+}
+
+.item-sms .sms-list .scroll-pane li.on {
+    background: rgba(234, 234, 234, 0.2) none repeat scroll !important;
+    filter: progid: DXImageTransform.Microsoft.gradient(enabled='true', startColorstr='#eaeaea', endColorstr='#eaeaea');
+}
+
+.item-sms a.linkSmsNew.button {
+    background: rgba(191, 191, 191, 0.2) none repeat scroll !important;
+    filter: progid: DXImageTransform.Microsoft.gradient(enabled='true', startColorstr='#eaeaea', endColorstr='#eaeaea');
+    border-top: 1px solid #e0e0e0;
+}
+
+.talk-word {
+    background: #fafafa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.talk-send {
+    background: #fafafa;
+}
+
+.bar {
+    background: rgba(191, 191, 191, 0.2) none repeat scroll;
+    filter: progid: DXImageTransform.Microsoft.gradient(enabled='true', startColorstr='#eaeaea', endColorstr='#eaeaea');
+}
+
+.item-settings .btnNormal,
+.btnNormal,
+html input[type="button"] {
+    border: 1px solid #e0e0e0;
+}
+
+.ContentFlow .flow {
+    height: 462px!important;
+}
+
+.sms-box .sms-text {
+    background-color: #e0e0e0;
+}
+
+.sms-box .sms-textbg {
+    border-color: transparent #e0e0e0 transparent transparent;
+}
+
+.round {
+    background: #666;
+}
+
+a.btnSlide {
+    background: none;
+}
+
+a.btnSlide span {
+    width: 41px;
+    height: 76px;
+    margin-top: 39px;
+}
+
+a.btnSlide.left span {
+    background: url(../images/btnSlideLeft.png) no-repeat 0 0;
+}
+
+a.btnSlide.right span {
+    background: url(../images/btnSlideRight.png) no-repeat 0 0;
+}
+
+.jspDrag {
+    background: rgba(181, 181, 181, 0.8) none repeat scroll !important;
+    background-color: #808080\0;
+    filter: Alpha(opacity=90)\0;
+}
+
+.green .jspDrag {
+    background: #b5b5b5!important;
+    background-color: #808080\0!important;
+    filter: Alpha(opacity=70)\0;
+}
+
+:root .jspDrag {
+    background-color: rgba(181, 181, 181, 0.4);
+}
+
+.glyphicon-sms-new {
+    color: #00B0CA;
+}
+
+.flow article.blue {
+    background: #ffffff;
+}
+
+.item-connection div.infos {
+    color: #666666;
+}
+
+.item-connection .infos li {
+    font: normal 21px 'HelveticaNeueLTStd-Th', Helvetica, Arial, sans-serif !important;
+}
+
+.item-connection .infos li.txt {
+    padding-left: 0;
+    line-height: 50px!important;
+}
+
+.item-connection .infos li.icons {
+    margin-top: 6px;
+    padding-right: 10px;
+    margin-left: 10px;
+}
+
+.item-connection .infos li span.row {
+    top: -34px;
+    position: inherit;
+    font: normal 15px "Helvetica", Arial;
+    padding-left: 3px;
+    float: none;
+}
+
+.item-connection .infos li sup {
+    top: -2px;
+    font: normal 16px "Helvetica", Arial;
+}
+
+.item-usage h3 .l,
+.item-usage .result,
+.result #total_times,
+.item-usage h3.r {
+    font-weight: bold;
+    font-size: 18px;
+    color: #666;
+    font-family: "Vodafone Rg";
+}
+
+.single-wrap {
+    width: 35%;
+}
+
+.item-settings .settings-list {
+    height: auto;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.item-usage .national,
+.item-usage .international {
+    color: #666;
+}
+
+.item-connection .infos li.txt {
+    width: 155px;
+}
+
+.activePre .article-mask,
+.activeNext .article-mask {
+    background: #fff;
+}
+
+.item-connection .infos .icons .bar {
+    background: url(../images/sprite_contain.png) no-repeat -57px -404px !important;
+    position: relative;
+}
+
+.item-connection .infos .bar .progress {
+    float: right;
+    width: 17px;
+    height: 0;
+    background-color: #919596;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    -webkit-transition: width .6s ease;
+    -o-transition: width .6s ease;
+    transition: width .6s ease;
+    border-radius: 3px;
+    position: absolute;
+    left: 22px;
+    bottom: 0;
+}
+
+.status-wrap .battery-icon-wrap .bar {
+    /*background: url(../images/icon_statusbar.png) no-repeat -99px -63px !important;*/
+    background: url(../images/icon_statusbar.png) no-repeat -123px -74px !important;
+    height: 17px;
+    position: relative;
+}
+
+.status-wrap .battery-icon-wrap .bar .progress {
+    float: right;
+    width: 10px;
+    height: 0;
+    background-color: #919596;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-transition: width .6s ease;
+    -o-transition: width .6s ease;
+    transition: width .6s ease;
+    border-radius: 2px;
+    position: absolute;
+    left: 5px;
+    bottom: 0;
+}
+
+.item-hd h2 a {
+    color: #fff;
+}
+
+.content .single-wrap .nw-type {
+    left: -170px;
+    top: 7%;
+}
+.item-usage .icon-warning {
+    margin-left: 2px;
+    margin-top:-3px;
+}
+.item-usage #max_usage,
+.item-usage  #home_total_usage,
+.item-usage #max_usage_sets,
+.item-usage #roam_total_usage,
+.item-usage #total_times{
+    font-size:14px;
+}
+.item-usage.item .dashboard li {
+    width: 126px;
+    padding: 10px 5px;
+}
+
+/* -------------------------------------------------
+9 - SYS POPINS POPIN
+ --------------------------------------------------- */
+
+#popUpMaskPopin {
+    display: none;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=85)";
+    filter: alpha(opacity=85);
+    opacity: 0.85;
+    z-index: 1000;
+}
+#popUpMaskIframePopin, #popUpMaskDivPopin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: none;
+    _display: block;
+    z-index: -1;
+    background: #000;
+    width: 100%;
+    height: 100%;
+}
+#popUpWrapPopin {
+    position: fixed;
+    z-index: 1007;
+    top: 40%;
+    left: 50%;
+    width: 442px;
+    margin: -10px 0 0 -248px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background: #fff;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=85)";
+    filter: alpha(opacity=20);
+    opacity: 0.2;
+    display: none;
+}
+#popUpBoxPopin {
+    top: 40%;
+    left: 50%;
+    border-top: 0;
+    width: 422px;
+    height: auto;
+    text-align: center;
+    position: fixed;
+    margin: 0 0 0 -238px;
+    display: none;
+    z-index: 1009;
+    background: #fff;
+}
+#popUpHeadPopin {
+    height: 28px;
+    line-height: 28px;
+    padding-left: 10px;
+    text-align: left;
+    color: #fff;
+}
+#popUpTitlePopin {
+    float: left;
+}
+#popUpClosePopin {
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    height: 20px;
+    width: 20px;
+    background: url("../images/icon_close.png") 0 0 no-repeat;
+    /* background-position: 0 -15px; */
+}
+#ar #popUpClosePopin {
+    left: 8px;
+    right: auto;
+}
+#popUpClosePopin:focus, #popUpClosePopin:hover {
+    /* background-position: 0 -29px; */
+}
+#popUpClosePopin:active {
+    background-position: -34px center;
+}
+#popUpMainPopin {
+    padding: 10px 15px;
+    line-height: 24px;
+    border-radius: 0 0 5px 5px;
+    background: #fff;
+}
+#popUpContentPopin {
+    margin-bottom: 10px;
+    text-align: left;
+}
+#ar #popUpContentPopin {
+    text-align: right;
+}
+#popUpBtnWrapPopin {
+    text-align: right
+}
+#ar #popUpBtnWrapPopin {
+    text-align: left
+}
+#showResultDivPopin {
+    height: 32px;
+    line-height: 32px;
+    padding-left: 42px;
+    margin-bottom: 25px;
+    background: url(../images/loading.gif) no-repeat left center;
+}
+
+/****************end***********************/
+
+@media only screen and (max-width: 640px) {
+    .TopMenuList {
+        background: url(../images/icon_statusbar.png) no-repeat 0px -106px;
+        top: 17px;
+    }
+}
+
+@media only screen and (max-width: 400px) {
+    .single-wrap {
+        width: 48%;
+    }
+}

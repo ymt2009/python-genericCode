@@ -1,0 +1,475 @@
+<script>
+currentMenu = 3;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "portForwarding";
+var PORTFWDING_LEN_MAX = config.MaxPortfwdingNum;
+var PORT_LEN_MAX = 65535;
+var PORT_LEN_MIN = 1;
+var applyClick;
+var thisLineNum;
+
+var PortFwdingData = SDK.Firewall.GetPortFwding();
+var PortFwdingList = PortFwdingData.portfwd_list;
+var PortFwdingNum = PortFwdingData.total_num;
+
+var routerData = SDK.LAN.GetLanSettings()
+var gatewayIP = routerData.IPv4IPAddress;
+var subnetIP = routerData.SubnetMask;
+
+var old_private_ip, old_private_port, old_global_port, old_private_port_end, old_global_port_end, old_fwding_protocol;
+var $pfLANPort = $("#pfLANPort");
+var $pfWanPort = $("#pfWanPort");
+
+function showData(list_id) {
+    $.each(PortFwdingList, function(i, v) {
+        if (i == list_id) {
+            $("#pfLANIPAdd").val(v.private_ip);
+            //if (v.private_port_end == 0) {
+                $("#pfLANPort").val(v.private_port);
+            //} else {
+               // $("#pfLANPort").val(v.private_port /*+ "-" + v.private_port_end*/);
+            //}
+           // if (v.global_port_end == 0) {
+                $("#pfWanPort").val(v.global_port);
+           //} else {
+                //$("#pfWanPort").val(v.global_port /*+ "-" + v.global_port_end*/);
+           //}
+            $("#selProtocol").val(v.fwding_protocol);
+            old_private_ip = v.private_ip;
+            old_private_port = v.private_port;
+            old_global_port = v.global_port;
+            //old_private_port_end = v.private_port_end;
+            //old_global_port_end = v.global_port_end;
+            old_fwding_protocol = v.fwding_protocol;
+        }
+    })
+}
+
+function showList(PortFwdingList) {
+    if ($.isArray(PortFwdingList) && PortFwdingNum > 0) {
+        var htmlS = "";
+        $.each(PortFwdingList, function(i, v) {
+            /*if (i == 0) {
+                if (v.private_port_end == 0) {
+                    $("#pfLANPort").val(v.private_port);
+                } else {
+                    $("#pfLANPort").val(v.private_port + "-" + v.private_port_end);
+                }
+                if (v.global_port_end == 0) {
+                    $("#pfWanPort").val(v.global_port);
+                } else {
+                    $("#pfWanPort").val(v.global_port + "-" + v.global_port_end);
+                }
+                $("#pfLANIPAdd").val(v.private_ip);
+                $("#selProtocol").val(v.fwding_protocol);
+            }*/
+            htmlS += makeList(i, v);
+        })
+        $("#portForwardingTable").append(htmlS);
+    }
+}
+
+function makeList(i, o) {
+    if (o == null) {
+        o = {
+            private_ip: "",
+            private_port: "",
+            global_port: "",
+           // private_port_end: "",
+            //global_port_end: "",
+            fwding_protocol: ""
+        }
+    }
+    if ($.isPlainObject(o)) {
+        var htmlStr = "";
+        htmlStr += "<tr class='trList' id='trPortFwding" + i + "'>";
+        //if (o.global_port_end == 0) {
+            htmlStr += "<td>" + o.global_port + "</td>";
+        //} else {
+            //htmlStr += "<td>" + o.global_port + "-" + o.global_port_end + "</td>";
+			//htmlStr += "<td>" + o.global_port + "</td>";
+        //}
+        htmlStr += "<td>" + o.private_ip + "</td>";
+        //if (o.private_port_end == 0) {
+            htmlStr += "<td>" + o.private_port + "</td>";
+        //} else {
+            //htmlStr += "<td>" + o.private_port + "-" + o.private_port_end + "</td>";
+			//htmlStr += "<td>" + o.private_port + "</td>";
+        //}
+        htmlStr += "<td>" + creatProtocol(o.fwding_protocol) + "</td>";
+        htmlStr += "<td align='center' class='ipBorder'><span class='editPortFwding' id='editPortFwding" + i + "'></span> <span class='deletePortFwding' id='deletePortFwding" + i + "'></a></td></tr>";
+        return htmlStr;
+    } //glyphicon glyphicon-trash
+}
+
+/****************** Add function **********************/
+
+function addPortfowardEvent() {
+    var params = {
+        "total_num": parseInt(PortFwdingNum + 1)
+    }
+    if (dataValidation() == false) {
+        return;
+    } else {
+        var params = {
+            "private_ip": dataValidation().private_ip,
+            "private_port": String(dataValidation().private_port),
+            "global_port": String(dataValidation().global_port),
+            //"private_port_end": String(dataValidation().private_port_end),
+            //"global_port_end": String(dataValidation().global_port_end),
+            "fwding_protocol": parseInt(dataValidation().fwding_protocol)
+        };
+    }
+    var result = SDK.Firewall.AddPortFwding(params);
+    showResult(result);
+}
+
+/****************** Edit function **********************/
+
+function editEvent(listId) {
+    var samePort = true;
+    var returnResult = dataValidation();
+    if (returnResult == false) {
+        return;
+    } else {
+        var params = {
+            "old_private_ip": old_private_ip,
+            "old_private_port": String(old_private_port),
+            "old_global_port": String(old_global_port),
+            //"old_private_port_end": String(old_private_port_end),
+            //"old_global_port_end": String(old_global_port_end),
+            "old_fwding_protocol": parseInt(old_fwding_protocol),
+            "new_private_ip": returnResult.private_ip,
+            "new_private_port": String(returnResult.private_port),
+            "new_global_port": String(returnResult.global_port),
+            //"new_private_port_end": String(returnResult.private_port_end),
+           // "new_global_port_end": String(returnResult.global_port_end),
+            "new_fwding_protocol": parseInt(returnResult.fwding_protocol)
+        }
+
+        $.each(PortFwdingList, function(i, v) {
+            /*if (i != listId && returnResult.private_ip == v.private_ip && returnResult.private_port == v.private_port && returnResult.global_port == v.global_port && returnResult.private_port_end == v.private_port_end && returnResult.global_port_end == v.global_port_end && returnResult.fwding_protocol == v.fwding_protocol) {*/
+              if (i != listId && returnResult.private_ip == v.private_ip && returnResult.private_port == v.private_port && returnResult.global_port == v.global_port && returnResult.fwding_protocol == v.fwding_protocol) {
+			    samePort = false;
+                return false;
+            }
+        })
+        if (!samePort) {
+            sys.alert("ids_security_pfWarn");
+            return false;
+        }
+        var result = SDK.Firewall.EditPortFwding(params);
+        showResult(result);
+    }
+}
+
+/****************** Delete function **********************/
+
+function delEvent(listId) {
+    sys.confirm(sys.getRes("ids_profile_deleteWarn"), function() {
+        var params;
+        $.each(PortFwdingList, function(i, v) {
+            if (i == listId) {
+                params = {
+                    "private_ip": v.private_ip,
+                    "private_port": String(v.private_port),
+                    "global_port": String(v.global_port),
+                    //"private_port_end": String(v.private_port_end),
+                    //"global_port_end": String(v.global_port_end),
+                    "fwding_protocol": parseInt(v.fwding_protocol)
+                };
+            }
+        });
+        var result = SDK.Firewall.DeletePortFwding(params);
+        showResult(result);
+    })
+}
+
+function showResult(result) {
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+/****************** verify the data before submit  **********************/
+function dataSplit(portText) {
+    portText = $.trim(portText.val()).split("-");
+    portText[0] = parseInt(portText[0]);
+    if (portText.length == 1) {
+        portText[1] = null;
+    } else {
+        portText[1] = parseInt(portText[1]);
+    }
+    return portText;
+}
+function isNumber(str) {
+    return /^[0-9]+$/.test(str);
+}
+function dataValidation() {
+    var lanAddrVal, lanPortVal, lanPortEndVal, wanPortVal, wanPortEndVal, protocolVal;
+    lanAddrVal = $.trim($("#pfLANIPAdd").val());
+    lanPortVal = dataSplit($pfLANPort)[0];
+    //lanPortEndVal = dataSplit($pfLANPort)[1];
+    wanPortVal = dataSplit($pfWanPort)[0];
+    //wanPortEndVal = dataSplit($pfWanPort)[1];
+    protocolVal = $("#selProtocol").val();
+    /*if (lanPortVal < PORT_LEN_MIN || lanPortVal > PORT_LEN_MAX || (!isNumber(lanPortVal))) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfLANPort").focus();
+        });
+        return false;
+    }
+    if (lanPortEndVal != null && (lanPortEndVal < PORT_LEN_MIN || lanPortEndVal > PORT_LEN_MAX || (!isNumber(lanPortEndVal)))) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfLANPort").focus();
+        });
+        return false;
+    }
+
+    if (lanPortEndVal != null && (lanPortVal >= lanPortEndVal)) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfLANPort").focus();
+        });
+        return false;
+    }*/
+    /*lan Port validation end*/
+
+    if (wanPortVal < PORT_LEN_MIN || wanPortVal > PORT_LEN_MAX || (!isNumber(wanPortVal))) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfWanPort").focus();
+        });
+        return false;
+    }
+    /*if (wanPortEndVal != null && (wanPortEndVal < PORT_LEN_MIN || wanPortEndVal > PORT_LEN_MAX || (!isNumber(wanPortEndVal)))) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfWanPort").focus();
+        });
+        return false;
+    }
+
+    if (wanPortEndVal != null && (wanPortVal >= wanPortEndVal)) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfWanPort").focus();
+        });
+        return false;
+    }*/
+    /*wan Port validation end*/
+    /*if (((wanPortEndVal == null && lanPortEndVal != null) || (wanPortEndVal != null && lanPortEndVal == null) || (wanPortEndVal != null && lanPortEndVal != null)) && (wanPortVal - wanPortEndVal != lanPortVal - lanPortEndVal)) {
+        sys.alert("ids_security_pfRangePortTip", function() {
+            $("#pfWanPort").focus();
+        });
+        return false;
+    }*/
+    if (lanAddrVal == "") {
+        sys.alert("ids_router_ipAddrEmpty", function() {
+            $("#pfLANIPAdd").focus();
+        });
+        return false;
+    }
+    if (!isValidIpAddress(lanAddrVal)) {
+        sys.alert("ids_router_ipAddrInvalid", function() {
+            $("#pfLANIPAdd").focus();
+        });
+        return false;
+    }
+    if (!IsSameSubnetAddrs(lanAddrVal, gatewayIP, subnetIP)) {
+        sys.alert("ids_security_subnetWarn", function() {
+            $("#pfLANIPAdd").focus();
+        });
+        return false;
+    }
+    if (!IsAvailableIpPool(gatewayIP, lanAddrVal, lanAddrVal)) {
+        sys.alert("ids_router_ipRule", function() {
+            $("#pfLANIPAdd").focus();
+        });
+        return false;
+    }
+	if (lanPortVal < PORT_LEN_MIN || lanPortVal > PORT_LEN_MAX || (!isNumber(lanPortVal))) {
+        sys.alert("ids_security_portRule", function() {
+            $("#pfLANPort").focus();
+        });
+        return false;
+    }
+    /*if (lanPortEndVal == null) {
+        lanPortEndVal = 0;
+    }
+    /*if (wanPortEndVal == null) {
+        wanPortEndVal = 0;
+    }*/
+    //if (isExistPort(lanAddrVal, lanPortVal, wanPortVal, lanPortEndVal, wanPortEndVal, protocolVal) && applyClick == "add") {
+	if (isExistPort(lanAddrVal, lanPortVal, wanPortVal, protocolVal) && applyClick == "add") {
+        sys.alert("ids_security_pfWarn");
+        return false;
+    }    
+    return {
+        private_ip: lanAddrVal,
+        private_port: lanPortVal,
+        global_port: wanPortVal,
+        //private_port_end: lanPortEndVal,
+        //global_port_end: wanPortEndVal,
+        fwding_protocol: protocolVal
+    };
+}
+
+function creatProtocol(val) {
+    var protocolText = "";
+    if (val != null || val != "") {
+        if (val == 6) {
+            protocolText = "TCP";
+        } else if (val == 17) {
+            protocolText = "UDP";
+        } else if (val == 253) {
+            protocolText = "TCP/UDP";
+        }
+    }
+    return protocolText;
+}
+
+//function isExistPort(lanAddrVal, lanPortVal, wanPortVal, lanPortEndVal, wanPortEndVal, protocolVal) {
+function isExistPort(lanAddrVal, lanPortVal, wanPortVal, protocolVal) {
+    var result = false;
+    $.each(PortFwdingList, function(i, v) {
+        /*if (lanAddrVal == v.private_ip && lanPortVal == v.private_port && wanPortVal == v.global_port && lanPortEndVal == v.private_port_end && wanPortEndVal == v.global_port_end && protocolVal == v.fwding_protocol) {*/
+		if (lanAddrVal == v.private_ip && lanPortVal == v.private_port && wanPortVal == v.global_port && protocolVal == v.fwding_protocol) {
+            result = true;
+            return false;
+        }
+    })
+    return result;
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+$(document).ready(function() {
+    initScroll($("article#settings"));
+    if (PortFwdingNum == PORTFWDING_LEN_MAX) {
+        $("#btnAdd").setBtnDisabled();
+    } else {
+        $("#btnAdd").removeBtnDisabled();
+    }
+    $(".portForwardingTb input,.portForwardingTb select").attr("disabled", true);
+    showList(PortFwdingList);
+    $("#btnApply,#btnCancel").setBtnDisabled();
+    $("#pfLANPort,#pfWanPort,#selProtocol,#pfLANIPAdd").bind("change input keyup keydown paste", function() {
+        $("#btnCancel").removeBtnDisabled();
+    });
+
+    $("#btnAdd").click(function() {
+        $("#pfLANPort").val("");
+        $("#pfWanPort").val("");
+        $("#pfLANIPAdd").val("");
+        $("#selProtocol").val("6");
+        applyClick = "add";
+        $("#btnAdd").setBtnDisabled();
+        $("#btnApply,#btnCancel").removeBtnDisabled();
+        $(".portForwardingTb input,.portForwardingTb select").attr("disabled", false);
+    });
+    $(".editPortFwding").click(function() {
+        applyClick = "edit";
+        $("#btnCancel").removeBtnDisabled();
+        $("#btnAdd").setBtnDisabled();
+        $("#pfLANPort,#pfWanPort,#selProtocol,#pfLANIPAdd").bind("change input keyup keydown paste", function() {
+            $("#btnApply").removeBtnDisabled();
+        });
+        var thisLineId = $(this).attr("id");
+        thisLineNum = thisLineId.slice(14);
+        showData(thisLineNum);
+        $(".portForwardingTb input,.portForwardingTb select").attr("disabled", false);
+    })
+
+
+
+    $("#btnApply").bind("click", function() {
+        if (applyClick == "add") {
+            addPortfowardEvent();
+        } else {
+            editEvent(thisLineNum);
+        }
+    });
+
+    $("#btnCancel").click(function() {
+        page.reloadMain();
+    });
+    $(".deletePortFwding").click(function() {
+        var thisLineId = $(this).attr("id");
+        thisLineNum = thisLineId.slice(16);
+        delEvent(thisLineNum);
+    });
+})
+</script>
+
+<div id="portForwardingPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_settings}</h2>
+    </div>
+
+    <div class="item-content">
+        <h3 class="title"><a href="#settings/securitySetting.html" class="changeLink">${ids_security_portForwarding}</a>
+        </h3>
+
+        <div class="scroll-pane jspScrollable">
+            <div class="connectShow settings-con">
+                <!--<p>${ids_security_virtualServer}</p>
+                </br>-->
+                <div style="color:#f00;">(${ids_security_portTips})</div>
+                </br>
+                <ul class="portForwardingTb ipt-wrap">
+                    <li>
+                        <label class="text">${ids_security_wanPort:}</label>
+                        <input id="pfWanPort" type="text" class="iptText">
+                    </li>
+                    <li>
+                        <label class="text">${ids_security_lanIpAddr:}</label>
+                        <input id="pfLANIPAdd" type="text" class="iptText">
+                    </li>
+                    <li>
+                        <label class="text">${ids_security_lanPort:}</label>
+                        <input id="pfLANPort" type="text" class="iptText">
+                    </li>
+                    <li>
+                        <label class="text">${ids_profile_protocal:}</label>
+                        <select name="select" id="selProtocol" class="select">
+                            <option value="6">TCP</option>
+                            <option value="17">UDP</option>
+                            <option value="253">TCP/UDP</option>
+                        </select>
+                    </li>
+                </ul>
+                    </table>
+                    <div class="btn-wrap">
+                        <input type="button" class="btnNormal" id="btnAdd" value="${ids_btn_add}" />
+                        <input type="button" class="btnNormal" id="btnApply" value="${ids_btn_apply}" />
+                        <input type="button" class="btnNormal" id="btnCancel" value="${ids_btn_cancel}" />
+                    </div>
+                    <div class="portForwardList">
+                        <p>${ids_security_virtualServerList}&nbsp;
+                            </br>
+                            <div style="color:#f00;">(${ids_security_pfNumRule})</div>
+                        </p>
+                        </br>
+                        <table class="portForwardingTable" id="portForwardingTable" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <th>${ids_security_wanPort}</th>
+                                <th>${ids_security_lanIpAddr}</th>
+                                <th>${ids_security_lanPort}</th>
+                                <th>${ids_profile_protocal}</th>
+                                <th>${ids_security_ipOption}</th>
+                            </tr>
+                        </table>
+                        </br>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>

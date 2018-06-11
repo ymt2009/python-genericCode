@@ -1,0 +1,80 @@
+<div id="pingSettingPage" class="jsTemplate">
+    <div class="item-hd clearfix">
+        <h2>${ids_menu_more}</h2>
+    </div>
+    <div class="item-content">
+        <h3><a href="#more/more.html" class="changeLink">${ids_title_ping}</a></h3>
+        <div class="connectShow settings-con">
+        	<ul class="ipt-wrap">
+                <li>
+                    <label class="text">${ids_title_ping:}</label>
+                    <label class="vertical">
+                        <input id="rdoPingEnable" type="radio" name="rdoPingStatus" value="0" />${ids_enable}</label>
+                    <label class="vertical">
+                        <input id="rdoPingDisable" type="radio" name="rdoPingStatus" value="1" />${ids_disable}</label>
+                </li>                
+            </ul>
+            <div class="btn-wrap">
+                <button class="btnNormal" id="btnApply">${ids_btn_apply}</button>
+                <button class="btnNormal" id="btnCancel">${ids_btn_cancel}</button>
+            </div>
+
+            <div class="statusContent" id="simCardStatus"></div>
+        </div>
+    </div>
+</div>
+<script>
+currentMenu = 5;
+</script>
+<script src="/js/childCommon.js"></script>
+<script>
+pageName = "pingSetting";
+var pingInfo = SDK.System.GetWanAccess();
+var pingStatus = pingInfo.disableWanAcess;
+
+$(function($) {
+    initScroll($("article#ping"));
+    initPage();   
+    $(".item-more #btnApply, .item-more #btnCancel").setBtnDisabled();
+    $("#rdoPingEnable, #rdoPingDisable").bind("input change keyup keydown paste", function() {
+        $(".item-more #btnApply, .item-more #btnCancel").removeBtnDisabled();
+    });
+    $(".item-more #btnApply").click(pingSettingEvent);
+    $(".item-more #btnCancel").click(function() {
+        page.reloadMain();
+    })
+});
+
+function initPage() {
+    if (pingStatus == 1) {
+        $("#rdoPingEnable").attr("checked", false);
+        $("#rdoPingDisable").attr("checked", true);
+    } else {
+        $("#rdoPingEnable").attr("checked", true);
+        $("#rdoPingDisable").attr("checked", false);
+    }    
+}
+
+function pingSettingEvent() {
+    var pingStatusValue = parseInt($("input[name='rdoPingStatus']:checked").val());   
+    var params = {
+        "disableWanAcess": pingStatusValue
+    }
+    var result = SDK.System.SetWanAccess (params);
+    if (result == API_RESULT_SUCCESS) {
+        sys.alert("ids_success", function() {
+            page.startLoading();
+            setTimeout("timeLoad()", 2000);
+        });
+    } else {
+        sys.alert("ids_fail", function() {
+            page.reloadMain();
+        });
+    }
+}
+
+function timeLoad() {
+    page.stopLoading()
+    page.reloadMain();
+}
+</script>
